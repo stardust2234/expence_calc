@@ -1,0 +1,219 @@
+
+.card {
+  background: #fff;
+  border: 1px solid #e2eae3;
+  border-radius: 15px;
+  padding: 29px;
+  box-shadow: 0 4px 14px #1b413408;
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+
+.card h2 {
+  font-size: 23px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.heading p {
+  margin: 8px 0;
+  color: #819087;
+  font-size: 13px;
+}
+
+.inputs label {
+  display: block;
+  color: #6b7d73;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 17px 0;
+  position: relative;
+}
+
+.inputs label > span {
+  position: absolute;
+  right: 40px;
+  bottom: 13px;
+  color: #9aaa9f;
+  font-size: 14px;
+}
+
+.inputs input,
+.inputs select {
+  width: 100%;
+  border: 1px solid #dce5df;
+  background: #fbfcfb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 7px;
+  color: #1b322a;
+  font:
+    600 15px "DM Sans",
+    Arial,
+    sans-serif;
+  outline: none;
+}
+
+.inputs input:focus {
+  border-color: #87b847;
+}
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+
+.add {
+  border: 0;
+  background: transparent;
+  color: #699334;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 12px 0;
+}
+
+.result {
+  background: #fbfdf9;
+}
+.extra-cost {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 32px;
+  gap: 8px;
+  margin: 8px 0;
+}
+.extra-cost input {
+  margin: 0 !important;
+}
+.extra-cost span {
+  position: absolute;
+  right: 13px;
+  top: 12px;
+  color: #9aaa9f;
+}
+.remove-cost {
+  width: 32px;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: #b36f5b;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.saved-plan {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #638b38;
+  font-size: 12px;
+  margin: 18px 0 0;
+}
+.saving-check {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff5e9;
+  color: #9a6548;
+}
+.saving-check.realistic {
+  background: #f0f7e9;
+  color: #5b8235;
+}
+.saving-check b,
+.saving-check small {
+  display: block;
+}
+.saving-check b {
+  font-size: 12px;
+}
+.saving-check small {
+  font-size: 11px;
+  margin-top: 4px;
+  color: #819087;
+}
+.saved-plan svg {
+  stroke-width: 2.5;
+}
+.notice {
+  position: fixed;
+  top: 20px;
+  right: 25px;
+  background: #173d34;
+  color: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  z-index: 5;
+  box-shadow: 0 5px 20px #173d3433;
+  cursor: pointer;
+}
+.preferences-overlay {
+  position: fixed;
+  inset: 0;
+  background: #173d3455;
+  display: grid;
+  place-items: center;
+  z-index: 4;
+  padding: clamp(12px, 4vw, 32px);
+  overflow-y: auto;
+}
+.preferences-panel {
+  position: relative;
+  width: min(100%, 520px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 15px;
+  padding: clamp(20px, 4vw, 30px);
+  box-shadow: 0 18px 50px #173d3440;
+}
+.preferences-panel h2 {
+  font-size: 26px;
+}
+.preferences-copy {
+  color: #819087;
+  font-size: 13px;
+  margin: 8px 0 24px;
+}
+.preferences-panel label {
+  display: block;
+  color: #6b7d73;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 17px 0;
+  position: relative;
+}
+.preferences-panel input {
+  width: 100%;
+  border: 1px solid #dce5df;
+  background: #fbfcfb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 7px;
+  font:
+    600 15px "DM Sans",
+    Arial,
+    sans-serif;
+}
+.preferences-panel label > span {
+  position: absolute;
+  right: 14px;
+  bottom: 13px;
+  color: #9aaa9f;
+}
+.close-preferences {
+  position: absolute;
+  right: 18px;
+  top: 15px;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  color: #819087;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}

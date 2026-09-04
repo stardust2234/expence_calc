@@ -1,0 +1,199 @@
+import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import App from "./App.vue";
+import ResultsPage from "./components/results/ResultsPage.vue";
+
+const resultProps = {
+  results: {
+    overallStatus: "Housing looks manageable",
+    score: 76,
+    purchaseSummary: "£550",
+    emergencySummary: "£13,200",
+    monthlyCosts: "£1,122",
+    cashFlow: {
+      income: "£1,900",
+      rent: "£672",
+      utilities: "£250",
+      debtPayments: "£300",
+      otherCommitments: "£0",
+      saving: "£150",
+      remaining: "-£22",
+    },
+  },
+};
+
+describe("Results page integration", () => {
+  it("renders the complete monthly cash-flow summary", () => {
+    const wrapper = mount(ResultsPage, { props: resultProps });
+    expect(wrapper.text()).toContain("Total recurring costs");
+    expect(wrapper.text()).toContain("£1,122");
+    expect(wrapper.text()).toContain("Total debt payments");
+    expect(wrapper.text()).toContain("-£22");
+  });
+
+  it("opens the browser print dialog for PDF export", async () => {
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    const wrapper = mount(ResultsPage, { props: resultProps });
+
+    await wrapper.get(".export-pdf").trigger("click");
+
+    expect(print).toHaveBeenCalledOnce();
+    print.mockRestore();
+  });
+});
+
+describe("localStorage integration", () => {
+  beforeEach(() => localStorage.clear());
+  it("restores persisted income and preferences on mount", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        income: 5100,
+        rent: 900,
+        utilities: 180,
+        monthlyCommitments: 250,
+        debtPayments: 400,
+        monthlySaving: 300,
+      }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("5100");
+    wrapper.unmount();
+  });
+  it("persists a changed income value", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#monthly-income").setValue("5000");
+    await wrapper.vm.$nextTick();
+    expect(
+      JSON.parse(localStorage.getItem("worthwhile-calculator-state") || "{}")
+        .income,
+    ).toBe(5000);
+    wrapper.unmount();
+  });
+  it("updates Safety net essentials from Preferences", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-rent").setValue("700");
+    await wrapper.find("#preference-utilities").setValue("200");
+    await wrapper.find("#preference-debt").setValue("100");
+    await wrapper.find("#preference-commitments").setValue("50");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+    expect(
+      (wrapper.find("#essential-spend").element as HTMLInputElement).value,
+    ).toBe("1050");
+    wrapper.unmount();
+  });
+  it("renders persisted user text as escaped DOM content", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        extraCosts: [
+          { id: 1, name: "<img src=x onerror=alert(1)>", amount: 10 },
+        ],
+      }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.findAll("script")).toHaveLength(0);
+    expect(wrapper.find('input[aria-label*="<img"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+  it("sanitizes negative and empty persisted numeric values", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ income: -100, rent: "", moving: -50, furnishings: -20 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("0");
+    wrapper.unmount();
+  });
+  it("handles corrupted persisted data without preventing startup", async () => {
+    localStorage.setItem("worthwhile-calculator-state", "not-json");
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find("#monthly-income").exists()).toBe(true);
+    expect(wrapper.find('[role="status"]').text()).toContain(
+      "could not be loaded",
+    );
+    wrapper.unmount();
+  });
+  it("persists moving costs and furnishings", async () => {
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Moving home"))!
+      .trigger("click");
+    await wrapper.find("#moving-costs").setValue("1200");
+    await wrapper.find("#furniture-setup").setValue("800");
+    await wrapper.vm.$nextTick();
+    const saved = JSON.parse(
+      localStorage.getItem("worthwhile-calculator-state") || "{}",
+    );
+    expect(saved.moving).toBe(1200);
+    expect(saved.furnishings).toBe(800);
+    wrapper.unmount();
+  });
+  it("clears saved data and shows confirmation", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ income: 5000 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Clear saved data")!
+      .trigger("click");
+    expect(localStorage.getItem("worthwhile-calculator-state")).toBe(null);
+    expect(wrapper.find('[role="status"]').text()).toContain("cleared");
+    wrapper.unmount();
+  });
+  it("includes the financed purchase payment once in the Results debt total", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#purchase-price").setValue("12000");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find(".results-page").text()).toContain(
+      "Total debt payments",
+    );
+    wrapper.unmount();
+  });
+  it("shows the saved-plan confirmation", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".save").trigger("click");
+    expect(wrapper.find('[role="status"]').text()).toContain("Plan saved");
+    wrapper.unmount();
+  });
+  it("shows Essential Cost Ratio in the Results flow", async () => {
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".results-page").text()).toContain(
+      "ESSENTIAL COST RATIO",
+    );
+    wrapper.unmount();
+  });
+});
