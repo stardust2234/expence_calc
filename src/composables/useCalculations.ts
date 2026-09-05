@@ -191,6 +191,8 @@ export function useCalculations(state: {
         (state.purchaseType.value === "cash" ? 0 : monthlyPayment.value) +
         state.monthlyCommitments.value +
         state.debtPayments.value +
+        state.transport.value +
+        state.food.value +
         extraMonthlyCosts.value,
     ),
     disposableMargin: formatCurrency(disposableMargin.value),
@@ -207,6 +209,8 @@ export function useCalculations(state: {
       income: formatCurrency(state.income.value),
       rent: formatCurrency(state.rent.value),
       utilities: formatCurrency(state.utilities.value),
+      transport: formatCurrency(state.transport.value),
+      food: formatCurrency(state.food.value),
       debtPayments: formatCurrency(
         state.debtPayments.value +
           (state.purchaseType.value === "cash" ? 0 : monthlyPayment.value),
@@ -218,6 +222,8 @@ export function useCalculations(state: {
       remaining: formatCurrency(
         state.income.value -
           monthlyHousing.value -
+          state.transport.value -
+          state.food.value -
           state.debtPayments.value -
           state.monthlyCommitments.value -
           extraMonthlyCosts.value -

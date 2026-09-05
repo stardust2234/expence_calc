@@ -11,6 +11,9 @@ export function usePersistence(
   notify: (message: string) => void,
 ) {
   const skipNextSave = ref(false);
+  const defaultValues = Object.fromEntries(
+    Object.entries(values).map(([key, refValue]) => [key, refValue.value]),
+  );
   const snapshot = () => ({
     ...Object.fromEntries(
       Object.entries(values).map(([key, refValue]) => [key, refValue.value]),
@@ -29,6 +32,10 @@ export function usePersistence(
     try {
       localStorage.removeItem(storageKey);
       skipNextSave.value = true;
+      Object.entries(defaultValues).forEach(([key, value]) => {
+        values[key].value = value;
+      });
+      extraCosts.value = [];
       // Ensure any already-queued reactive save cannot restore the cleared snapshot.
       setTimeout(() => localStorage.removeItem(storageKey), 0);
       notify("Saved data cleared from this device.");
