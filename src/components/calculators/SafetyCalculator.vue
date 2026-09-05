@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { ShieldCheck } from "lucide-vue-next";
 const props = defineProps<{
   essentials: number;
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   ): void;
 }>();
 const savingIsRealistic = () => props.monthlySaving <= props.availableMonthly;
+const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
 </script>
 <template>
   <div class="heading">
@@ -25,7 +27,7 @@ const savingIsRealistic = () => props.monthlySaving <= props.availableMonthly;
     >Essential monthly spend
     <input
       id="essential-spend"
-      :value="essentials"
+      :value="essentialSpendDisplay"
       type="number"
       min="0"
       readonly

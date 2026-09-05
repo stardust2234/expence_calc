@@ -92,7 +92,7 @@ describe("localStorage integration", () => {
       .trigger("click");
     expect(
       (wrapper.find("#essential-spend").element as HTMLInputElement).value,
-    ).toBe("1050");
+    ).toBe("1050.00");
     wrapper.unmount();
   });
   it("renders persisted user text as escaped DOM content", async () => {

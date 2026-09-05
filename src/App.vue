@@ -67,6 +67,7 @@ const {
   moveTotal,
   emergencyTarget,
   cashAvailable,
+  disposableMargin,
   cashPurchaseMonths,
   cashAmountStillNeeded,
   emergencyGap,
@@ -296,16 +297,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               v-model:essentials="essentials"
               v-model:saved="saved"
               v-model:monthly-saving="monthlySaving"
-              :available-monthly="
-                Math.max(
-                  0,
-                  income -
-                    monthlyHousing -
-                    monthlyCommitments -
-                    debtPayments -
-                    extraMonthlyCosts,
-                )
-              "
+              :available-monthly="Math.max(0, disposableMargin)"
             /><button v-if="mode !== 'safety'" class="add" @click="addCost">
               ＋ Add another cost
             </button>
