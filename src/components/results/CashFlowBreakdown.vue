@@ -17,6 +17,12 @@ defineProps<{ cashFlow: FinancialResults["cashFlow"] }>();
     <span>Utilities</span><b>{{ cashFlow.utilities }}</b>
   </div>
   <div class="cash-row">
+    <span>Transport</span><b>{{ cashFlow.transport }}</b>
+  </div>
+  <div class="cash-row">
+    <span>Food</span><b>{{ cashFlow.food }}</b>
+  </div>
+  <div class="cash-row">
     <span>Total debt payments</span><b>{{ cashFlow.debtPayments }}</b>
   </div>
   <div class="cash-row">

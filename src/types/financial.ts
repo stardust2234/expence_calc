@@ -11,6 +11,8 @@ export type FinancialResults = {
     income: string;
     rent: string;
     utilities: string;
+    transport?: string;
+    food?: string;
     debtPayments: string;
     otherCommitments: string;
     saving: string;
