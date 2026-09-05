@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   AppHeader,
   CalculatorTabs,
@@ -44,6 +44,16 @@ const {
 const preferencesOpen = ref(false),
   menuOpen = ref(false),
   notice = ref("");
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest(".menu-panel, .menu-button")) {
+    menuOpen.value = false;
+  }
+};
+onMounted(() => document.addEventListener("click", handleDocumentClick));
+onBeforeUnmount(() =>
+  document.removeEventListener("click", handleDocumentClick),
+);
 watch(
   [rent, utilities, transport, food, debtPayments, monthlyCommitments],
   () => {
@@ -385,6 +395,17 @@ const selectCalculator = (next: CalculatorMode | "results") => {
           ><ShieldCheck :size="14" /> Privacy: your figures are stored only in
           this browser and are not uploaded.</span
         >
+        <span class="footer-links">
+          <a
+            class="ko-fi-button"
+            href="https://ko-fi.com/E3P624TYVL"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Support me on Ko-fi
+          </a>
+          <a href="mailto:contact@libranode.dev">Contact me</a>
+        </span>
         <span>Built for real life, not perfect spreadsheets.</span>
       </footer>
     </main>
