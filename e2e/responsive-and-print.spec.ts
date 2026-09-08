@@ -42,7 +42,21 @@ test.describe("responsive and print layouts", () => {
 
     await expect(page.locator(".results-actions")).toBeHidden();
     await expect(page.locator("aside")).toBeHidden();
+    await expect(page.locator(".help-button").first()).toBeHidden();
     await expect(page.locator(".results-page")).toBeVisible();
+
+    const printStyles = await page
+      .locator(".results-cards article")
+      .first()
+      .evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return {
+          breakInside: styles.breakInside,
+          colorAdjust: styles.printColorAdjust,
+        };
+      });
+    expect(printStyles.breakInside).toBe("avoid");
+    expect(printStyles.colorAdjust).toBe("exact");
   });
 
   test("keeps Results accessible below 480px", async ({ page }) => {

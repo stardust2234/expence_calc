@@ -90,10 +90,14 @@
 }
 @media print {
   @page {
+    size: A4;
     margin: 1.5cm;
   }
+  html,
   body {
     background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   aside,
   header,
@@ -108,21 +112,31 @@
     max-width: none;
     padding: 0;
   }
+  .shell {
+    display: block;
+    min-height: 0;
+  }
   .results-page {
+    width: 100%;
     box-shadow: none;
     border: 0;
     padding: 0;
   }
   .results-cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .results-cards article,
   .cash-flow,
-  .summary-card {
+  .finance-health {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
   .results-detail-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+  .help-button {
+    display: none;
   }
 }
 .back-to-calculators {

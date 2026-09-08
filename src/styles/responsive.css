@@ -99,12 +99,6 @@
   }
 }
 
-/* Keep interactive controls out of printed PDF output. */
-@media print {
-  .results-actions {
-    display: none !important;
-  }
-}
 .choice {
   display: flex;
   background: #f0f5ef;
