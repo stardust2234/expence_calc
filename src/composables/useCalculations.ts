@@ -7,6 +7,7 @@ import {
   calculateMonthlyPayment,
   calculateMoveInTotal,
   evaluateGuideline,
+  getEssentialCostPosition,
   isWithinComfortRule,
   sanitizeNumber,
 } from "../calculations";
@@ -205,6 +206,14 @@ export function useCalculations(state: {
         state.income.value,
       ) * 100,
     ),
+    essentialCostPosition: getEssentialCostPosition(
+      calculateHousingRatio(
+        state.essentials.value + extraMonthlyCosts.value,
+        state.income.value,
+      ),
+    )
+      .replace(/-/g, " ")
+      .replace(/^\w/, (letter) => letter.toUpperCase()),
     cashFlow: {
       income: formatCurrency(state.income.value),
       rent: formatCurrency(state.rent.value),

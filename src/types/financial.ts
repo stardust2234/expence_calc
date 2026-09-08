@@ -7,6 +7,7 @@ export type FinancialResults = {
   disposableMargin?: string;
   disposableMarginPercentage?: number;
   essentialCostRatio?: number;
+  essentialCostPosition?: string;
   cashFlow: {
     income: string;
     rent: string;

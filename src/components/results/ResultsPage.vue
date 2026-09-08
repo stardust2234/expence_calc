@@ -124,7 +124,10 @@ const exportPdf = () => window.print();
           </button>
         </div>
         <h3>{{ results.essentialCostRatio ?? 0 }}%</h3>
-        <small>Essential costs as a share of net income</small>
+        <small
+          >{{ results.essentialCostPosition }} · Essential costs as a share of
+          net income</small
+        >
       </article>
     </div>
     <div
