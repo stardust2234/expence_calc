@@ -119,11 +119,7 @@ export function useCalculations(state: {
       ? effectiveMonthlySaving.value
       : sanitizeNumber(state.monthlySaving.value),
   );
-  const cashSavingPace = computed(() =>
-    plannedMonthlySaving.value > 0
-      ? plannedMonthlySaving.value
-      : calculateSuggestedSaving(state.income.value, disposableMargin.value),
-  );
+  const cashSavingPace = computed(() => plannedMonthlySaving.value);
   const cashAmountStillNeeded = computed(() =>
     Math.max(0, fullPurchasePrice.value - cashAvailable.value),
   );
@@ -138,11 +134,17 @@ export function useCalculations(state: {
   const emergencyGap = computed(() =>
     Math.max(0, emergencyTarget.value - sanitizeNumber(state.saved.value)),
   );
+  const emergencySavingPace = computed(() => {
+    const selectedSaving = sanitizeNumber(state.monthlySaving.value);
+    return selectedSaving > disposableMargin.value
+      ? 0
+      : effectiveMonthlySaving.value;
+  });
   const emergencyMonths = computed(() =>
     calculateEmergencyMonths(
       emergencyTarget.value,
       state.saved.value,
-      effectiveMonthlySaving.value,
+      emergencySavingPace.value,
     ),
   );
   const ratio = computed(() => {

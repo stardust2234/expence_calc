@@ -352,4 +352,49 @@ describe("localStorage integration", () => {
     expect(wrapper.find(".copy").text()).not.toContain("approximately 4 months");
     wrapper.unmount();
   });
+  it("keeps an explicit zero cash saving pace consistent", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-saving").setValue("0");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+    await wrapper.find("#purchase-price").setValue("3000");
+    await wrapper
+      .findAll(".choice button")
+      .find((button) => button.text() === "Pay cash")!
+      .trigger("click");
+
+    expect(wrapper.find(".copy").text()).toContain(
+      "cannot currently be funded",
+    );
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    const savingRow = wrapper
+      .findAll(".cash-row")
+      .find((row) => row.text().includes("Planned saving"));
+    expect(savingRow?.text()).toContain("£0");
+    wrapper.unmount();
+  });
+  it("does not give an unaffordable safety pace a finish date", async () => {
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+    await wrapper.find("#monthly-income").setValue("1000");
+    await wrapper.find("#essential-spend").setValue("900");
+    await wrapper.find("#saved-amount").setValue("0");
+    await wrapper.find("#monthly-saving").setValue("200");
+    expect(wrapper.find(".copy").text()).toContain(
+      "Increase your monthly saving pace to calculate a finish date.",
+    );
+    wrapper.unmount();
+  });
 });
