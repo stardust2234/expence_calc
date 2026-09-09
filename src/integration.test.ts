@@ -240,6 +240,9 @@ describe("localStorage integration", () => {
       .trigger("click");
 
     expect(wrapper.find(".result h2").text()).toBe("This may stretch you");
+    expect(wrapper.find(".result .salary").text()).toContain(
+      "listed costs currently use 44%",
+    );
     await wrapper
       .findAll(".tabs button")
       .find((button) => button.text() === "Results")!
@@ -247,6 +250,23 @@ describe("localStorage integration", () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find(".results-heading h2").text()).toBe(
       "This plan needs a closer look",
+    );
+    wrapper.unmount();
+  });
+  it("warns when purchase debt is fractionally above the threshold", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-income").setValue("1000");
+    await wrapper.find("#preference-debt").setValue("200.04");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+
+    expect(wrapper.find(".result .salary").text()).toContain(
+      "Debt repayments use 20%",
     );
     wrapper.unmount();
   });

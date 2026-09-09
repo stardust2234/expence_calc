@@ -85,7 +85,6 @@ const {
   debtRepaymentRatio,
   score,
   verdict,
-  minSalary,
   formatCurrency: fmt,
   isWithinComfortRule,
   results: calculatedResults,
@@ -374,11 +373,11 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                 : undefined
             "
             :warning="
-              mode === 'purchase' && Math.round(debtRepaymentRatio * 100) > 20
+              mode === 'purchase' && debtRepaymentRatio > 0.2
                 ? `Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
-                : mode === 'move' && !isWithinComfortRule(housingRatio)
-                  ? `Minimum housing income: ${fmt(minSalary)} / month. Housing currently uses ${Math.round(housingRatio * 100)}% of take-home income.`
-                : undefined
+                : mode === 'move' && !isWithinComfortRule(ratio)
+                  ? `Minimum income for listed costs: ${fmt((ratio * income) / 0.3)} / month. Listed costs currently use ${Math.round(ratio * 100)}% of take-home income.`
+                  : undefined
             "
             @save="savePlan"
           /></div></template
