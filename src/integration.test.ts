@@ -415,6 +415,15 @@ describe("localStorage integration", () => {
     expect(wrapper.find(".copy").text()).toContain(
       "Increase your monthly saving pace to calculate a finish date.",
     );
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    const savingRow = wrapper
+      .findAll(".cash-row")
+      .find((row) => row.text().includes("Planned saving"));
+    expect(savingRow?.text()).toContain("£0");
     wrapper.unmount();
   });
   it("does not give a sub-threshold safety pace a finish date", async () => {
@@ -439,6 +448,11 @@ describe("localStorage integration", () => {
     expect(wrapper.find(".results-page").text()).toContain(
       "Time to goal: Not possible",
     );
+    const savingRow = wrapper
+      .findAll(".cash-row")
+      .find((row) => row.text().includes("Planned saving"));
+    expect(savingRow?.text()).toContain("£0");
+    expect(wrapper.find(".results-page").text()).toContain("£80");
     wrapper.unmount();
   });
 });

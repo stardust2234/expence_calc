@@ -114,12 +114,6 @@ export function useCalculations(state: {
       ? sanitizeNumber(state.monthlySaving.value)
       : suggestedSaving.value,
   );
-  const plannedMonthlySaving = computed(() =>
-    state.mode.value === "safety"
-      ? effectiveMonthlySaving.value
-      : sanitizeNumber(state.monthlySaving.value),
-  );
-  const cashSavingPace = computed(() => plannedMonthlySaving.value);
   const cashAmountStillNeeded = computed(() =>
     Math.max(0, fullPurchasePrice.value - cashAvailable.value),
   );
@@ -140,6 +134,12 @@ export function useCalculations(state: {
       ? 0
       : effectiveMonthlySaving.value;
   });
+  const plannedMonthlySaving = computed(() =>
+    state.mode.value === "safety"
+      ? emergencySavingPace.value
+      : sanitizeNumber(state.monthlySaving.value),
+  );
+  const cashSavingPace = computed(() => plannedMonthlySaving.value);
   const emergencyMonths = computed(() =>
     calculateEmergencyMonths(
       emergencyTarget.value,
