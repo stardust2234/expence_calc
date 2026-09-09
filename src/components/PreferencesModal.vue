@@ -50,8 +50,9 @@ const emit = defineEmits<{
         Set the figures used across every calculator.
       </p>
       <label for="preference-income"
-        >Monthly take-home income<input
-          :value="income"
+          >Monthly take-home income<input
+            id="preference-income"
+            :value="income"
           type="number"
           min="0"
           @input="

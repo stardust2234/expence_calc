@@ -177,6 +177,97 @@ describe("localStorage integration", () => {
     );
     wrapper.unmount();
   });
+  it("does not carry a purchase payment into moving Results", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#purchase-price").setValue("12000");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Moving home"))!
+      .trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    const debtRow = wrapper
+      .findAll(".cash-row")
+      .find((row) => row.text().includes("Total debt payments"));
+    expect(debtRow?.text()).toContain("£0");
+    wrapper.unmount();
+  });
+  it("includes transport and food in the cash-flow score ratio", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#monthly-income").setValue("1000");
+    await wrapper.find("#purchase-price").setValue("0");
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-food").setValue("200");
+    await wrapper.find("#preference-transport").setValue("100");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".results-heading").text()).toContain(
+      "This plan needs a closer look",
+    );
+    wrapper.unmount();
+  });
+  it("keeps moving verdict and Results status aligned", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-income").setValue("5000");
+    await wrapper.find("#preference-rent").setValue("1000");
+    await wrapper.find("#preference-utilities").setValue("200");
+    await wrapper.find("#preference-transport").setValue("500");
+    await wrapper.find("#preference-food").setValue("500");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Moving home"))!
+      .trigger("click");
+
+    expect(wrapper.find(".result h2").text()).toBe("This may stretch you");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find(".results-heading h2").text()).toBe(
+      "This plan needs a closer look",
+    );
+    wrapper.unmount();
+  });
+  it("keeps persisted housing costs in the Results finance health indicator", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ income: 2000, rent: 800, utilities: 200 }),
+    );
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    const housingRow = wrapper
+      .findAll(".health-row")
+      .find((row) => row.find("span").text() === "Housing");
+    expect(housingRow?.text()).toContain("50%");
+    wrapper.unmount();
+  });
   it("shows the saved-plan confirmation", async () => {
     const wrapper = mount(App);
     await wrapper.find(".save").trigger("click");
@@ -194,6 +285,71 @@ describe("localStorage integration", () => {
     expect(wrapper.find(".results-page").text()).toContain(
       "ESSENTIAL COST RATIO",
     );
+    wrapper.unmount();
+  });
+  it("shows purchase details and safety progress on Results", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#purchase-price").setValue("28000");
+    await wrapper.find("#purchase-deposit").setValue("5000");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".results-page").text()).toContain(
+      "£23,000 borrowed · £3,385 interest · 4 years at 6.9%",
+    );
+
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".results-page").text()).toContain("18% funded");
+    expect(wrapper.find(".results-page").text()).toContain(
+      "Time to goal: 2.0 years",
+    );
+    wrapper.unmount();
+  });
+  it("does not apply safety saving suggestions to Purchase Finance Health", async () => {
+    const wrapper = mount(App);
+    await wrapper.find(".menu-button").trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.find("#preference-saving").setValue("0");
+    await wrapper.find(".preferences-panel .save").trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    const savingsRow = wrapper
+      .findAll(".health-row")
+      .find((row) => row.find("span").text() === "Savings");
+    expect(savingsRow?.text()).toContain("0%");
+    expect(savingsRow?.text()).toContain("Below guideline");
+    wrapper.unmount();
+  });
+  it("uses a planned saving pace for cash-purchase timelines", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#monthly-income").setValue("3000");
+    await wrapper.find("#purchase-price").setValue("3000");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Pay cash")!
+      .trigger("click");
+    expect(wrapper.find(".copy").text()).toContain("approximately 5 months");
+    expect(wrapper.find(".copy").text()).not.toContain("approximately 4 months");
     wrapper.unmount();
   });
 });

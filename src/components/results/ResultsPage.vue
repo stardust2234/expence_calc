@@ -43,6 +43,7 @@ const exportPdf = () => window.print();
           </button>
         </div>
         <h3>{{ results.purchaseSummary }}</h3>
+        <small>{{ results.purchaseDetails }}</small>
       </article>
       <article>
         <div class="metric-card-heading">
@@ -62,6 +63,10 @@ const exportPdf = () => window.print();
           </button>
         </div>
         <h3>{{ results.emergencySummary }}</h3>
+        <small
+          >{{ results.safetyProgress ?? 0 }}% funded · Time to goal:
+          {{ results.safetyTimeToGoal }}</small
+        >
       </article>
       <article>
         <div class="metric-card-heading">
@@ -73,7 +78,7 @@ const exportPdf = () => window.print();
             @click="
               help = {
                 title: 'Total recurring costs',
-                copy: 'This combines your recurring housing, finance, debt, and other listed commitments.',
+                 copy: 'This combines your recurring housing, finance, debt, transport, food, and other listed commitments.',
               }
             "
           >
@@ -81,7 +86,7 @@ const exportPdf = () => window.print();
           </button>
         </div>
         <h3>{{ results.monthlyCosts }}</h3>
-        <small>Housing, finance, debt, and other listed costs</small>
+        <small>Housing, finance, debt, transport, food, and other listed costs</small>
       </article>
       <article>
         <div class="metric-card-heading">

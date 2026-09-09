@@ -1,23 +1,47 @@
 export const sanitizeNumber = (value: number | string): number =>
   Math.max(0, Number(value) || 0);
-export function calculateMonthlyPayment(
+const calculateUnroundedMonthlyPayment = (
   price: number,
   deposit: number,
   termMonths: number,
   annualRate: number,
-): number {
+): number => {
   const principal = Math.max(
     0,
     sanitizeNumber(price) - sanitizeNumber(deposit),
   );
   const months = Math.max(1, sanitizeNumber(termMonths));
   const monthlyRate = sanitizeNumber(annualRate) / 1200;
-  if (monthlyRate === 0) return Math.round(principal / months);
-  return Math.round(
+  if (monthlyRate === 0) return principal / months;
+  return (
     (principal * monthlyRate * (1 + monthlyRate) ** months) /
-      ((1 + monthlyRate) ** months - 1),
+      ((1 + monthlyRate) ** months - 1)
+  );
+};
+export function calculateMonthlyPayment(
+  price: number,
+  deposit: number,
+  termMonths: number,
+  annualRate: number,
+): number {
+  return Math.round(
+    calculateUnroundedMonthlyPayment(price, deposit, termMonths, annualRate),
   );
 }
+export const calculateInterestCost = (
+  price: number,
+  deposit: number,
+  termMonths: number,
+  annualRate: number,
+): number =>
+  Math.max(
+    0,
+    Math.round(
+      calculateUnroundedMonthlyPayment(price, deposit, termMonths, annualRate) *
+        Math.max(1, sanitizeNumber(termMonths)) -
+        Math.max(0, sanitizeNumber(price) - sanitizeNumber(deposit)),
+    ),
+  );
 export const calculateCashPurchase = (price: number): number =>
   sanitizeNumber(price);
 export const calculateMoveInTotal = (
@@ -37,6 +61,15 @@ export const calculateEmergencyMonths = (
   const gap = Math.max(0, sanitizeNumber(target) - sanitizeNumber(saved));
   const pace = sanitizeNumber(monthlySaving);
   return gap === 0 ? 0 : pace > 0 ? Math.ceil(gap / pace) : Infinity;
+};
+export const calculateSuggestedSaving = (
+  income: number,
+  availableMonthly: number,
+): number => {
+  const takeHome = sanitizeNumber(income);
+  const available = sanitizeNumber(availableMonthly);
+  if (takeHome === 0 || available / takeHome < 0.1) return 0;
+  return takeHome * (available / takeHome > 0.2 ? 0.15 : 0.1);
 };
 export const calculateHousingRatio = (
   monthlyCosts: number,
@@ -61,8 +94,17 @@ export const getGuidelineStatus = (
   ratio: number,
   guideline: Guideline,
 ): GuidelineStatus => {
-  if (guideline.min !== undefined && ratio < guideline.min) return "below";
-  if (guideline.max !== undefined && ratio > guideline.max) return "above";
+  const percentage = Math.round(ratio * 100);
+  if (
+    guideline.min !== undefined &&
+    percentage < Math.round(guideline.min * 100)
+  )
+    return "below";
+  if (
+    guideline.max !== undefined &&
+    percentage > Math.round(guideline.max * 100)
+  )
+    return "above";
   return "within";
 };
 

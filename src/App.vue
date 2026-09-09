@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   AppHeader,
   CalculatorTabs,
@@ -11,7 +11,6 @@ import PurchaseCalculator from "./components/calculators/PurchaseCalculator.vue"
 import MoveCalculator from "./components/calculators/MoveCalculator.vue";
 import SafetyCalculator from "./components/calculators/SafetyCalculator.vue";
 import { ShieldCheck } from "lucide-vue-next";
-import type { FinancialResults } from "./types/financial";
 import {
   useFinancialState,
   type CalculatorMode,
@@ -68,11 +67,10 @@ watch(
   { immediate: true },
 );
 const {
-  extraMonthlyCosts,
   housingRatio,
   housingCost,
-  monthlyHousing,
   monthlyPayment,
+  interestCost,
   fullPurchasePrice,
   moveTotal,
   emergencyTarget,
@@ -82,7 +80,9 @@ const {
   cashAmountStillNeeded,
   emergencyGap,
   emergencyMonths,
+  effectiveMonthlySaving,
   ratio,
+  debtRepaymentRatio,
   score,
   verdict,
   minSalary,
@@ -111,45 +111,6 @@ const {
   extraCosts,
 });
 const storageKey = "worthwhile-calculator-state",
-  results = computed<FinancialResults>(() => ({
-    overallStatus:
-      housingRatio.value <= 0.3
-        ? "Housing looks manageable"
-        : "This plan needs a closer look",
-    score: score.value,
-    purchaseSummary:
-      purchaseType.value === "cash"
-        ? fmt(fullPurchasePrice.value)
-        : fmt(monthlyPayment.value),
-    emergencySummary: fmt(emergencyTarget.value),
-    monthlyCosts: fmt(
-      monthlyHousing.value +
-        (purchaseType.value === "cash" ? 0 : monthlyPayment.value) +
-        monthlyCommitments.value +
-        debtPayments.value +
-        extraMonthlyCosts.value,
-    ),
-    cashFlow: {
-      income: fmt(income.value),
-      rent: fmt(rent.value),
-      utilities: fmt(utilities.value),
-      debtPayments: fmt(
-        debtPayments.value +
-          (purchaseType.value === "cash" ? 0 : monthlyPayment.value),
-      ),
-      otherCommitments: fmt(monthlyCommitments.value + extraMonthlyCosts.value),
-      saving: fmt(monthlySaving.value),
-      remaining: fmt(
-        income.value -
-          monthlyHousing.value -
-          debtPayments.value -
-          monthlyCommitments.value -
-          extraMonthlyCosts.value -
-          (purchaseType.value === "cash" ? 0 : monthlyPayment.value) -
-          monthlySaving.value,
-      ),
-    },
-  })),
   persistedValues = {
     mode,
     view,
@@ -308,6 +269,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               v-model:saved="saved"
               v-model:monthly-saving="monthlySaving"
               :available-monthly="Math.max(0, disposableMargin)"
+              :income="income"
             /><button v-if="mode !== 'safety'" class="add" @click="addCost">
               ＋ Add another cost
             </button>
@@ -335,14 +297,16 @@ const selectCalculator = (next: CalculatorMode | "results") => {
             :score="score"
             :copy="
               mode === 'safety'
-                ? `Your target is ${fmt(emergencyTarget)}. You have ${fmt(saved)} saved so far. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(monthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
+                ? `Your target is ${fmt(emergencyTarget)}. You need ${fmt(emergencyGap)} to reach your goal. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(effectiveMonthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
                 : mode === 'purchase' && purchaseType === 'cash'
-                  ? cashAmountStillNeeded === 0
-                    ? `The full purchase price is ${fmt(fullPurchasePrice)}. It fits within your ${fmt(cashAvailable)} available monthly surplus after expenses (shown as £0 when expenses exceed income).`
-                    : `The full purchase price is ${fmt(fullPurchasePrice)}. You can afford this without borrowing in approximately ${cashPurchaseMonths === Infinity ? 'an unknown number of' : cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
+                   ? cashAmountStillNeeded === 0
+                     ? `The full purchase price is ${fmt(fullPurchasePrice)}. It fits within your ${fmt(cashAvailable)} available monthly surplus after expenses (shown as £0 when expenses exceed income).`
+                     : cashPurchaseMonths === Infinity
+                       ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
+                       : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
                   : mode === 'move'
                     ? `Your first-month move-in cost is ${fmt(moveTotal)}. Housing is ${fmt(housingCost)} per month (${Math.round(housingRatio * 100)}% of income); housing and listed commitments together use ${Math.round(ratio * 100)}%.`
-                    : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Housing and listed commitments together use ${Math.round(ratio * 100)}%.`
+                   : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
             "
             :primary-label="
               mode === 'safety'
@@ -367,7 +331,11 @@ const selectCalculator = (next: CalculatorMode | "results") => {
             :secondary-label="
               mode === 'purchase' && purchaseType === 'cash'
                 ? 'Time to save'
-                : 'Suggested housing max'
+                : mode === 'purchase'
+                  ? 'Interest cost'
+                  : mode === 'safety'
+                    ? 'Time to save'
+                    : 'Suggested housing max'
             "
             :secondary-value="
               mode === 'purchase' && purchaseType === 'cash'
@@ -376,11 +344,40 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                   : cashPurchaseMonths === Infinity
                     ? 'Not possible'
                     : `${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'}`
-                : fmt(income * 0.3)
+                : mode === 'purchase'
+                  ? fmt(interestCost)
+                  : mode === 'safety'
+                    ? emergencyGap === 0
+                      ? 'Target reached'
+                      : emergencyMonths === Infinity
+                        ? 'Not possible'
+                    : `${(emergencyMonths / 12).toFixed(1)} years`
+                    : fmt(income * 0.3)
+            "
+            :rule-title="
+              mode === 'safety'
+                ? 'Safety-net plan'
+                : mode === 'purchase'
+                  ? 'Within the 20% debt repayment threshold'
+                  : 'Under the 30% comfort rule'
+            "
+            :rule-copy="
+              mode === 'safety'
+                ? 'Your saving plan is building toward your emergency fund target.'
+                : mode === 'purchase'
+                  ? 'Your purchase debt repayments stay within 20% of take-home income.'
+                  : 'Your listed monthly costs leave room for the rest of your life.'
+            "
+            :warning-title="
+              mode === 'purchase'
+                ? 'Above the 20% debt repayment threshold'
+                : undefined
             "
             :warning="
-              mode !== 'safety' && !isWithinComfortRule(housingRatio)
-                ? `Minimum housing income: ${fmt(minSalary)} / month. Housing currently uses ${Math.round(housingRatio * 100)}% of take-home income.`
+              mode === 'purchase' && Math.round(debtRepaymentRatio * 100) > 20
+                ? `Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
+                : mode === 'move' && !isWithinComfortRule(housingRatio)
+                  ? `Minimum housing income: ${fmt(minSalary)} / month. Housing currently uses ${Math.round(housingRatio * 100)}% of take-home income.`
                 : undefined
             "
             @save="savePlan"

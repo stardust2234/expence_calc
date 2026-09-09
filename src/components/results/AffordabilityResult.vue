@@ -7,6 +7,9 @@ defineProps<{
   primaryValue: string;
   secondaryLabel: string;
   secondaryValue: string;
+  ruleTitle: string;
+  ruleCopy: string;
+  warningTitle?: string;
   warning?: string;
 }>();
 const emit = defineEmits<{ (event: "save"): void }>();
@@ -31,18 +34,15 @@ const emit = defineEmits<{ (event: "save"): void }>();
     <div v-if="warning" class="salary">
       <span>!</span>
       <div>
-        <b>Above the 30% comfort rule</b>
+        <b>{{ warningTitle ?? "Above the 30% comfort rule" }}</b>
         <small>{{ warning }}</small>
       </div>
     </div>
     <div v-else class="rule">
       <span>✓</span>
       <div>
-        <b>Under the 30% comfort rule</b>
-        <small
-          >Your listed monthly costs leave room for the rest of your
-          life.</small
-        >
+        <b>{{ ruleTitle }}</b>
+        <small>{{ ruleCopy }}</small>
       </div>
     </div>
     <div class="breakdown">
