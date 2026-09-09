@@ -94,15 +94,14 @@ export const getGuidelineStatus = (
   ratio: number,
   guideline: Guideline,
 ): GuidelineStatus => {
-  const percentage = Math.round(ratio * 100);
   if (
     guideline.min !== undefined &&
-    percentage < Math.round(guideline.min * 100)
+    ratio < guideline.min
   )
     return "below";
   if (
     guideline.max !== undefined &&
-    percentage > Math.round(guideline.max * 100)
+    ratio > guideline.max
   )
     return "above";
   return "within";

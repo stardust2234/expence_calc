@@ -91,7 +91,7 @@ describe("financial calculations", () => {
     });
     expect(evaluateGuideline(100, 0, { max: 0.3 }).status).toBe("above");
     expect(getGuidelineStatus(0.1, { min: 0.05, max: 0.1 })).toBe("within");
-    expect(getGuidelineStatus(0.1001, { min: 0.05, max: 0.1 })).toBe("within");
+    expect(getGuidelineStatus(0.1001, { min: 0.05, max: 0.1 })).toBe("above");
   });
   it("classifies essential cost ratio positions", () => {
     expect(getEssentialCostPosition(0.5)).toBe("comfortable");
