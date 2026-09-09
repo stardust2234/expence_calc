@@ -417,4 +417,28 @@ describe("localStorage integration", () => {
     );
     wrapper.unmount();
   });
+  it("does not give a sub-threshold safety pace a finish date", async () => {
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+    await wrapper.find("#monthly-income").setValue("1000");
+    await wrapper.find("#essential-spend").setValue("920");
+    await wrapper.find("#saved-amount").setValue("0");
+    await wrapper.find("#monthly-saving").setValue("50");
+
+    expect(wrapper.find(".copy").text()).toContain(
+      "Increase your monthly saving pace to calculate a finish date.",
+    );
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find(".results-page").text()).toContain(
+      "Time to goal: Not possible",
+    );
+    wrapper.unmount();
+  });
 });

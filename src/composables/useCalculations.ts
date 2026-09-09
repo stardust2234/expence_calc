@@ -136,7 +136,7 @@ export function useCalculations(state: {
   );
   const emergencySavingPace = computed(() => {
     const selectedSaving = sanitizeNumber(state.monthlySaving.value);
-    return selectedSaving > disposableMargin.value
+    return suggestedSaving.value === 0 || selectedSaving > disposableMargin.value
       ? 0
       : effectiveMonthlySaving.value;
   });
