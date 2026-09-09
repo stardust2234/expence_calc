@@ -15,8 +15,8 @@ const emit = defineEmits<{
     value: number,
   ): void;
 }>();
-const suggestedSaving = computed(
-  () => calculateSuggestedSaving(props.income, props.availableMonthly),
+const suggestedSaving = computed(() =>
+  calculateSuggestedSaving(props.income, props.availableMonthly),
 );
 const suggestedSavingRate = computed(() =>
   props.income > 0 ? (suggestedSaving.value / props.income) * 100 : 0,
@@ -26,9 +26,7 @@ const savingPace = computed(() =>
   props.monthlySaving > 0 ? props.monthlySaving : suggestedSaving.value,
 );
 const savingIsRealistic = computed(
-  () =>
-    savingIsPossible.value &&
-    savingPace.value <= props.availableMonthly,
+  () => savingIsPossible.value && savingPace.value <= props.availableMonthly,
 );
 const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
 </script>

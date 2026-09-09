@@ -241,7 +241,7 @@ describe("localStorage integration", () => {
 
     expect(wrapper.find(".result h2").text()).toBe("This may stretch you");
     expect(wrapper.find(".result .salary").text()).toContain(
-      "listed costs currently use 44%",
+      "Listed costs currently use 44%",
     );
     await wrapper
       .findAll(".tabs button")
@@ -473,15 +473,25 @@ describe("localStorage integration", () => {
     wrapper.unmount();
   });
   it("does not give a sub-threshold safety pace a finish date", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        income: 1000,
+        rent: 920,
+        utilities: 0,
+        transport: 0,
+        food: 0,
+        debtPayments: 0,
+        monthlyCommitments: 0,
+        saved: 0,
+        monthlySaving: 50,
+      }),
+    );
     const wrapper = mount(App);
     await wrapper
       .findAll(".tabs button")
       .find((button) => button.text().includes("Safety net"))!
       .trigger("click");
-    await wrapper.find("#monthly-income").setValue("1000");
-    await wrapper.find("#essential-spend").setValue("920");
-    await wrapper.find("#saved-amount").setValue("0");
-    await wrapper.find("#monthly-saving").setValue("50");
 
     expect(wrapper.find(".copy").text()).toContain(
       "Increase your monthly saving pace to calculate a finish date.",

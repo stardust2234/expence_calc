@@ -299,14 +299,14 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               mode === 'safety'
                 ? `Your target is ${fmt(emergencyTarget)}. You need ${fmt(emergencyGap)} to reach your goal. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(effectiveMonthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
                 : mode === 'purchase' && purchaseType === 'cash'
-                   ? cashAmountStillNeeded === 0
-                     ? `The full purchase price is ${fmt(fullPurchasePrice)}. It is covered without borrowing.`
-                     : cashPurchaseMonths === Infinity
-                       ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
-                       : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
+                  ? cashAmountStillNeeded === 0
+                    ? `The full purchase price is ${fmt(fullPurchasePrice)}. It is covered without borrowing.`
+                    : cashPurchaseMonths === Infinity
+                      ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
+                      : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
                   : mode === 'move'
                     ? `Your first-month move-in cost is ${fmt(moveTotal)}. Housing is ${fmt(housingCost)} per month (${Math.round(housingRatio * 100)}% of income); housing and listed commitments together use ${Math.round(ratio * 100)}%.`
-                   : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
+                    : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
             "
             :primary-label="
               mode === 'safety'
@@ -351,7 +351,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                       ? 'Target reached'
                       : emergencyMonths === Infinity
                         ? 'Not possible'
-                    : `${(emergencyMonths / 12).toFixed(1)} years`
+                        : `${(emergencyMonths / 12).toFixed(1)} years`
                     : fmt(income * 0.3)
             "
             :rule-title="

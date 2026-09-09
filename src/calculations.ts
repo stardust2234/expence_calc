@@ -15,7 +15,7 @@ const calculateUnroundedMonthlyPayment = (
   if (monthlyRate === 0) return principal / months;
   return (
     (principal * monthlyRate * (1 + monthlyRate) ** months) /
-      ((1 + monthlyRate) ** months - 1)
+    ((1 + monthlyRate) ** months - 1)
   );
 };
 export function calculateMonthlyPayment(
@@ -94,16 +94,8 @@ export const getGuidelineStatus = (
   ratio: number,
   guideline: Guideline,
 ): GuidelineStatus => {
-  if (
-    guideline.min !== undefined &&
-    ratio < guideline.min
-  )
-    return "below";
-  if (
-    guideline.max !== undefined &&
-    ratio > guideline.max
-  )
-    return "above";
+  if (guideline.min !== undefined && ratio < guideline.min) return "below";
+  if (guideline.max !== undefined && ratio > guideline.max) return "above";
   return "within";
 };
 

@@ -78,7 +78,7 @@ const exportPdf = () => window.print();
             @click="
               help = {
                 title: 'Total recurring costs',
-                 copy: 'This combines your recurring housing, finance, debt, transport, food, and other listed commitments.',
+                copy: 'This combines your recurring housing, finance, debt, transport, food, and other listed commitments.',
               }
             "
           >
@@ -86,7 +86,10 @@ const exportPdf = () => window.print();
           </button>
         </div>
         <h3>{{ results.monthlyCosts }}</h3>
-        <small>Housing, finance, debt, transport, food, and other listed costs</small>
+        <small
+          >Housing, finance, debt, transport, food, and other listed
+          costs</small
+        >
       </article>
       <article>
         <div class="metric-card-heading">

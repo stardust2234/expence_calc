@@ -130,7 +130,8 @@ export function useCalculations(state: {
   );
   const emergencySavingPace = computed(() => {
     const selectedSaving = sanitizeNumber(state.monthlySaving.value);
-    return suggestedSaving.value === 0 || selectedSaving > disposableMargin.value
+    return suggestedSaving.value === 0 ||
+      selectedSaving > disposableMargin.value
       ? 0
       : effectiveMonthlySaving.value;
   });
@@ -176,8 +177,7 @@ export function useCalculations(state: {
   );
   const debtRepaymentRatio = computed(() =>
     calculateHousingRatio(
-      state.debtPayments.value +
-        planMonthlyPayment.value,
+      state.debtPayments.value + planMonthlyPayment.value,
       state.income.value,
     ),
   );
@@ -188,8 +188,7 @@ export function useCalculations(state: {
         : Math.min(
             100,
             Math.round(
-              (sanitizeNumber(state.saved.value) / emergencyTarget.value) *
-                100,
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) * 100,
             ),
           )
       : Math.max(
@@ -266,12 +265,11 @@ export function useCalculations(state: {
         : Math.min(
             100,
             Math.round(
-              (sanitizeNumber(state.saved.value) / emergencyTarget.value) *
-                100,
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) * 100,
             ),
           ),
     monthlyCosts: formatCurrency(
-        monthlyHousing.value +
+      monthlyHousing.value +
         planMonthlyPayment.value +
         state.monthlyCommitments.value +
         state.debtPayments.value +
@@ -304,15 +302,12 @@ export function useCalculations(state: {
       transport: formatCurrency(state.transport.value),
       food: formatCurrency(state.food.value),
       debtPayments: formatCurrency(
-        state.debtPayments.value +
-          planMonthlyPayment.value,
+        state.debtPayments.value + planMonthlyPayment.value,
       ),
       otherCommitments: formatCurrency(
         state.monthlyCommitments.value + extraMonthlyCosts.value,
       ),
-      saving: formatCurrency(
-        plannedMonthlySaving.value,
-      ),
+      saving: formatCurrency(plannedMonthlySaving.value),
       remaining: formatCurrency(
         state.income.value -
           monthlyHousing.value -
@@ -372,8 +367,7 @@ export function useCalculations(state: {
       {
         label: "Debt repayments",
         ...evaluateGuideline(
-          state.debtPayments.value +
-            planMonthlyPayment.value,
+          state.debtPayments.value + planMonthlyPayment.value,
           state.income.value,
           {
             max: 0.2,
