@@ -75,6 +75,7 @@ const {
   moveTotal,
   emergencyTarget,
   cashAvailable,
+  listedMonthlyCosts,
   disposableMargin,
   cashPurchaseMonths,
   cashAmountStillNeeded,
@@ -299,7 +300,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                 ? `Your target is ${fmt(emergencyTarget)}. You need ${fmt(emergencyGap)} to reach your goal. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(effectiveMonthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
                 : mode === 'purchase' && purchaseType === 'cash'
                    ? cashAmountStillNeeded === 0
-                     ? `The full purchase price is ${fmt(fullPurchasePrice)}. It fits within your ${fmt(cashAvailable)} available monthly surplus after expenses (shown as £0 when expenses exceed income).`
+                     ? `The full purchase price is ${fmt(fullPurchasePrice)}. It is covered without borrowing.`
                      : cashPurchaseMonths === Infinity
                        ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
                        : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
@@ -311,7 +312,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               mode === 'safety'
                 ? 'Emergency fund target'
                 : mode === 'purchase' && purchaseType === 'cash'
-                  ? 'Available after expenses (minimum £0)'
+                  ? 'Starting cash'
                   : mode === 'purchase'
                     ? 'Monthly payment'
                     : 'Monthly rent'
@@ -376,7 +377,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               mode === 'purchase' && debtRepaymentRatio > 0.2
                 ? `Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
                 : mode === 'move' && !isWithinComfortRule(ratio)
-                  ? `Minimum income for listed costs: ${fmt((ratio * income) / 0.3)} / month. Listed costs currently use ${Math.round(ratio * 100)}% of take-home income.`
+                  ? `Minimum income for listed costs: ${fmt(listedMonthlyCosts / 0.3)} / month. Listed costs currently use ${Math.round(ratio * 100)}% of take-home income.`
                   : undefined
             "
             @save="savePlan"

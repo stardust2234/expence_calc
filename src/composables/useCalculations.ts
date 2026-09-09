@@ -94,7 +94,7 @@ export function useCalculations(state: {
       calculateEmergencyTarget(state.essentials.value) +
       extraMonthlyCosts.value * 6,
   );
-  const cashAvailable = computed(() => Math.max(0, disposableMargin.value));
+  const cashAvailable = computed(() => 0);
   const disposableMargin = computed(
     () =>
       sanitizeNumber(state.income.value) -
@@ -165,6 +165,15 @@ export function useCalculations(state: {
       state.income.value,
     );
   });
+  const listedMonthlyCosts = computed(
+    () =>
+      monthlyHousing.value +
+      state.monthlyCommitments.value +
+      state.debtPayments.value +
+      state.transport.value +
+      state.food.value +
+      extraMonthlyCosts.value,
+  );
   const debtRepaymentRatio = computed(() =>
     calculateHousingRatio(
       state.debtPayments.value +
@@ -174,14 +183,15 @@ export function useCalculations(state: {
   );
   const score = computed(() =>
     state.mode.value === "safety"
-      ? Math.min(
-          100,
-          Math.round(
-            (sanitizeNumber(state.saved.value) /
-              Math.max(1, emergencyTarget.value)) *
-              100,
-          ),
-        )
+      ? emergencyTarget.value === 0
+        ? 100
+        : Math.min(
+            100,
+            Math.round(
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) *
+                100,
+            ),
+          )
       : Math.max(
           0,
           Math.min(
@@ -250,14 +260,16 @@ export function useCalculations(state: {
         : emergencyMonths.value === Infinity
           ? "Not possible"
           : `${(emergencyMonths.value / 12).toFixed(1)} years`,
-    safetyProgress: Math.min(
-      100,
-      Math.round(
-        (sanitizeNumber(state.saved.value) /
-          Math.max(1, emergencyTarget.value)) *
-          100,
-      ),
-    ),
+    safetyProgress:
+      emergencyTarget.value === 0
+        ? 100
+        : Math.min(
+            100,
+            Math.round(
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) *
+                100,
+            ),
+          ),
     monthlyCosts: formatCurrency(
         monthlyHousing.value +
         planMonthlyPayment.value +
@@ -380,6 +392,7 @@ export function useCalculations(state: {
     moveTotal,
     emergencyTarget,
     cashAvailable,
+    listedMonthlyCosts,
     disposableMargin,
     disposableMarginPercentage,
     effectiveMonthlySaving,

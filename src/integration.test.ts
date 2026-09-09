@@ -368,8 +368,54 @@ describe("localStorage integration", () => {
       .findAll("button")
       .find((button) => button.text() === "Pay cash")!
       .trigger("click");
-    expect(wrapper.find(".copy").text()).toContain("approximately 5 months");
-    expect(wrapper.find(".copy").text()).not.toContain("approximately 4 months");
+    expect(wrapper.find(".copy").text()).toContain("approximately 9 months");
+    expect(wrapper.find(".copy").text()).not.toContain("approximately 5 months");
+    wrapper.unmount();
+  });
+
+  it("uses listed moving costs for the zero-income minimum", async () => {
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Moving home"))!
+      .trigger("click");
+    await wrapper.find("#monthly-rent").setValue("600");
+    await wrapper.find("#monthly-utilities").setValue("0");
+    await wrapper.find("#monthly-income").setValue("0");
+
+    expect(wrapper.find(".result .salary").text()).toContain(
+      "Minimum income for listed costs: £2,000 / month",
+    );
+    wrapper.unmount();
+  });
+
+  it("treats a zero-cost safety target as fully funded", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        income: 0,
+        rent: 0,
+        utilities: 0,
+        transport: 0,
+        food: 0,
+        debtPayments: 0,
+        monthlyCommitments: 0,
+        saved: 0,
+      }),
+    );
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text() === "Results")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find(".results-page").text()).toContain("100% funded");
+    expect(wrapper.find(".results-page").text()).toContain("Target reached");
     wrapper.unmount();
   });
   it("keeps an explicit zero cash saving pace consistent", async () => {
