@@ -4,8 +4,10 @@ import {
   calculateEmergencyMonths,
   calculateEmergencyTarget,
   calculateHousingRatio,
+  calculateInterestCost,
   calculateMonthlyPayment,
   calculateMoveInTotal,
+  calculateSuggestedSaving,
   isWithinComfortRule,
   sanitizeNumber,
   calculateBudgetRatio,
@@ -17,6 +19,10 @@ describe("financial calculations", () => {
   it("calculates amortised and zero-interest payments", () => {
     expect(calculateMonthlyPayment(28000, 5000, 48, 6.9)).toBe(550);
     expect(calculateMonthlyPayment(12000, 2000, 20, 0)).toBe(500);
+  });
+  it("calculates the total interest cost of a financed purchase", () => {
+    expect(calculateInterestCost(28000, 5000, 48, 6.9)).toBe(3385);
+    expect(calculateInterestCost(12000, 2000, 20, 0)).toBe(0);
   });
   it("uses the full price for cash purchases", () =>
     expect(calculateCashPurchase(28000)).toBe(28000));
@@ -30,6 +36,11 @@ describe("financial calculations", () => {
   it("calculates six months and saving time", () => {
     expect(calculateEmergencyTarget(2200)).toBe(13200);
     expect(calculateEmergencyMonths(13200, 1800, 350)).toBe(33);
+  });
+  it("suggests saving based on the remaining income threshold", () => {
+    expect(calculateSuggestedSaving(1000, 90)).toBe(0);
+    expect(calculateSuggestedSaving(1000, 200)).toBe(100);
+    expect(calculateSuggestedSaving(1000, 201)).toBe(150);
   });
   it("sanitizes negative and empty values", () => {
     expect(sanitizeNumber(-10)).toBe(0);
@@ -79,6 +90,8 @@ describe("financial calculations", () => {
       status: "within",
     });
     expect(evaluateGuideline(100, 0, { max: 0.3 }).status).toBe("above");
+    expect(getGuidelineStatus(0.1, { min: 0.05, max: 0.1 })).toBe("within");
+    expect(getGuidelineStatus(0.1001, { min: 0.05, max: 0.1 })).toBe("above");
   });
   it("classifies essential cost ratio positions", () => {
     expect(getEssentialCostPosition(0.5)).toBe("comfortable");

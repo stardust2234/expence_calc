@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ShieldCheck } from "lucide-vue-next";
+import { calculateSuggestedSaving } from "../../calculations";
 const props = defineProps<{
   essentials: number;
   saved: number;
   monthlySaving: number;
   availableMonthly: number;
+  income: number;
 }>();
 const emit = defineEmits<{
   (
@@ -13,7 +15,19 @@ const emit = defineEmits<{
     value: number,
   ): void;
 }>();
-const savingIsRealistic = () => props.monthlySaving <= props.availableMonthly;
+const suggestedSaving = computed(() =>
+  calculateSuggestedSaving(props.income, props.availableMonthly),
+);
+const suggestedSavingRate = computed(() =>
+  props.income > 0 ? (suggestedSaving.value / props.income) * 100 : 0,
+);
+const savingIsPossible = computed(() => suggestedSaving.value > 0);
+const savingPace = computed(() =>
+  props.monthlySaving > 0 ? props.monthlySaving : suggestedSaving.value,
+);
+const savingIsRealistic = computed(
+  () => savingIsPossible.value && savingPace.value <= props.availableMonthly,
+);
 const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
 </script>
 <template>
@@ -64,16 +78,18 @@ const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
     />
     <span>£</span>
   </label>
-  <div :class="['saving-check', { realistic: savingIsRealistic() }]">
+  <div :class="['saving-check', { realistic: savingIsRealistic }]">
     <b>{{
-      savingIsRealistic()
-        ? "Looks realistic"
-        : "This saving pace may be too high"
+      !savingIsPossible
+        ? "Saving is not currently possible"
+        : savingIsRealistic
+          ? "Looks realistic"
+          : "This saving pace needs adjusting"
     }}</b>
     <small>{{
-      savingIsRealistic()
-        ? `You have ${new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(props.availableMonthly)} left after listed monthly costs.`
-        : "Your saving pace is higher than the money left after listed monthly costs."
+      !savingIsPossible
+        ? "Less than 10% of take-home income remains after listed monthly costs."
+        : `You have ${new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(props.availableMonthly)} left after listed monthly costs. Suggested saving: ${new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(suggestedSaving)} per month (${suggestedSavingRate}%).`
     }}</small>
   </div>
 </template>

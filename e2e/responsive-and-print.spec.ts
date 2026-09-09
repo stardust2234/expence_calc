@@ -45,6 +45,11 @@ test.describe("responsive and print layouts", () => {
     await expect(page.locator(".help-button").first()).toBeHidden();
     await expect(page.locator(".results-page")).toBeVisible();
 
+    const detailColumns = await page
+      .locator(".results-detail-grid")
+      .evaluate((element) => getComputedStyle(element).gridTemplateColumns);
+    expect(detailColumns.split(" ")).toHaveLength(2);
+
     const printStyles = await page
       .locator(".results-cards article")
       .first()

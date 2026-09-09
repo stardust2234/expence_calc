@@ -2,7 +2,10 @@ export type FinancialResults = {
   overallStatus: string;
   score: number;
   purchaseSummary: string;
+  purchaseDetails?: string;
   emergencySummary: string;
+  safetyTimeToGoal?: string;
+  safetyProgress?: number;
   monthlyCosts: string;
   disposableMargin?: string;
   disposableMarginPercentage?: number;

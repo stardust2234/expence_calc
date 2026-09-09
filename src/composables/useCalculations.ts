@@ -4,8 +4,10 @@ import {
   calculateEmergencyMonths,
   calculateEmergencyTarget,
   calculateHousingRatio,
+  calculateInterestCost,
   calculateMonthlyPayment,
   calculateMoveInTotal,
+  calculateSuggestedSaving,
   evaluateGuideline,
   getEssentialCostPosition,
   isWithinComfortRule,
@@ -52,6 +54,19 @@ export function useCalculations(state: {
       state.rate.value,
     ),
   );
+  const planMonthlyPayment = computed(() =>
+    state.mode.value === "purchase" && state.purchaseType.value === "finance"
+      ? monthlyPayment.value
+      : 0,
+  );
+  const interestCost = computed(() =>
+    calculateInterestCost(
+      state.price.value,
+      state.deposit.value,
+      state.term.value,
+      state.rate.value,
+    ),
+  );
   const housingCost = computed(() =>
     state.mode.value === "purchase"
       ? state.purchaseType.value === "cash"
@@ -79,7 +94,7 @@ export function useCalculations(state: {
       calculateEmergencyTarget(state.essentials.value) +
       extraMonthlyCosts.value * 6,
   );
-  const cashAvailable = computed(() => Math.max(0, disposableMargin.value));
+  const cashAvailable = computed(() => 0);
   const disposableMargin = computed(
     () =>
       sanitizeNumber(state.income.value) -
@@ -91,24 +106,46 @@ export function useCalculations(state: {
       ? disposableMargin.value / sanitizeNumber(state.income.value)
       : 0,
   );
+  const suggestedSaving = computed(() =>
+    calculateSuggestedSaving(state.income.value, disposableMargin.value),
+  );
+  const effectiveMonthlySaving = computed(() =>
+    sanitizeNumber(state.monthlySaving.value) > 0
+      ? sanitizeNumber(state.monthlySaving.value)
+      : suggestedSaving.value,
+  );
   const cashAmountStillNeeded = computed(() =>
     Math.max(0, fullPurchasePrice.value - cashAvailable.value),
   );
   const cashPurchaseMonths = computed(() =>
     cashAmountStillNeeded.value === 0
       ? 0
-      : sanitizeNumber(state.monthlySaving.value) > 0
-        ? Math.ceil(cashAmountStillNeeded.value / disposableMargin.value)
+      : cashSavingPace.value > 0 &&
+          cashSavingPace.value <= disposableMargin.value
+        ? Math.ceil(cashAmountStillNeeded.value / cashSavingPace.value)
         : Infinity,
   );
   const emergencyGap = computed(() =>
     Math.max(0, emergencyTarget.value - sanitizeNumber(state.saved.value)),
   );
+  const emergencySavingPace = computed(() => {
+    const selectedSaving = sanitizeNumber(state.monthlySaving.value);
+    return suggestedSaving.value === 0 ||
+      selectedSaving > disposableMargin.value
+      ? 0
+      : effectiveMonthlySaving.value;
+  });
+  const plannedMonthlySaving = computed(() =>
+    state.mode.value === "safety"
+      ? emergencySavingPace.value
+      : sanitizeNumber(state.monthlySaving.value),
+  );
+  const cashSavingPace = computed(() => plannedMonthlySaving.value);
   const emergencyMonths = computed(() =>
     calculateEmergencyMonths(
       emergencyTarget.value,
       state.saved.value,
-      state.monthlySaving.value,
+      emergencySavingPace.value,
     ),
   );
   const ratio = computed(() => {
@@ -117,24 +154,43 @@ export function useCalculations(state: {
         ? state.purchaseType.value === "cash"
           ? monthlyHousing.value + state.monthlyCommitments.value
           : monthlyHousing.value +
-            monthlyPayment.value +
+            planMonthlyPayment.value +
             state.monthlyCommitments.value
         : monthlyHousing.value + state.monthlyCommitments.value;
     return calculateHousingRatio(
-      costs + state.debtPayments.value + extraMonthlyCosts.value,
+      costs +
+        state.debtPayments.value +
+        state.transport.value +
+        state.food.value +
+        extraMonthlyCosts.value,
       state.income.value,
     );
   });
+  const listedMonthlyCosts = computed(
+    () =>
+      monthlyHousing.value +
+      state.monthlyCommitments.value +
+      state.debtPayments.value +
+      state.transport.value +
+      state.food.value +
+      extraMonthlyCosts.value,
+  );
+  const debtRepaymentRatio = computed(() =>
+    calculateHousingRatio(
+      state.debtPayments.value + planMonthlyPayment.value,
+      state.income.value,
+    ),
+  );
   const score = computed(() =>
     state.mode.value === "safety"
-      ? Math.min(
-          100,
-          Math.round(
-            (sanitizeNumber(state.saved.value) /
-              Math.max(1, emergencyTarget.value)) *
-              100,
-          ),
-        )
+      ? emergencyTarget.value === 0
+        ? 100
+        : Math.min(
+            100,
+            Math.round(
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) * 100,
+            ),
+          )
       : Math.max(
           0,
           Math.min(
@@ -152,7 +208,7 @@ export function useCalculations(state: {
         ),
   );
   const verdict = computed(() =>
-    housingRatio.value <= 0.3
+    (state.mode.value === "safety" ? housingRatio.value : ratio.value) <= 0.3
       ? "Comfortable"
       : score.value >= 50
         ? "Worth a closer look"
@@ -178,18 +234,43 @@ export function useCalculations(state: {
 
   const results = computed<FinancialResults>(() => ({
     overallStatus:
-      housingRatio.value <= 0.3
-        ? "Housing looks manageable"
-        : "This plan needs a closer look",
+      state.mode.value === "safety"
+        ? emergencyGap.value === 0
+          ? "Safety net target reached"
+          : score.value >= 50
+            ? "Safety net is taking shape"
+            : "Safety net needs attention"
+        : ratio.value <= 0.3
+          ? "Housing looks manageable"
+          : "This plan needs a closer look",
     score: score.value,
     purchaseSummary:
       state.purchaseType.value === "cash"
         ? formatCurrency(fullPurchasePrice.value)
         : formatCurrency(monthlyPayment.value),
+    purchaseDetails:
+      state.purchaseType.value === "cash"
+        ? "Paid in cash"
+        : `${formatCurrency(Math.max(0, sanitizeNumber(state.price.value) - sanitizeNumber(state.deposit.value)))} borrowed · ${formatCurrency(interestCost.value)} interest · ${Math.max(1, sanitizeNumber(state.term.value)) / 12} years at ${sanitizeNumber(state.rate.value)}%`,
     emergencySummary: formatCurrency(emergencyTarget.value),
+    safetyTimeToGoal:
+      emergencyGap.value === 0
+        ? "Target reached"
+        : emergencyMonths.value === Infinity
+          ? "Not possible"
+          : `${(emergencyMonths.value / 12).toFixed(1)} years`,
+    safetyProgress:
+      emergencyTarget.value === 0
+        ? 100
+        : Math.min(
+            100,
+            Math.round(
+              (sanitizeNumber(state.saved.value) / emergencyTarget.value) * 100,
+            ),
+          ),
     monthlyCosts: formatCurrency(
       monthlyHousing.value +
-        (state.purchaseType.value === "cash" ? 0 : monthlyPayment.value) +
+        planMonthlyPayment.value +
         state.monthlyCommitments.value +
         state.debtPayments.value +
         state.transport.value +
@@ -221,13 +302,12 @@ export function useCalculations(state: {
       transport: formatCurrency(state.transport.value),
       food: formatCurrency(state.food.value),
       debtPayments: formatCurrency(
-        state.debtPayments.value +
-          (state.purchaseType.value === "cash" ? 0 : monthlyPayment.value),
+        state.debtPayments.value + planMonthlyPayment.value,
       ),
       otherCommitments: formatCurrency(
         state.monthlyCommitments.value + extraMonthlyCosts.value,
       ),
-      saving: formatCurrency(state.monthlySaving.value),
+      saving: formatCurrency(plannedMonthlySaving.value),
       remaining: formatCurrency(
         state.income.value -
           monthlyHousing.value -
@@ -236,21 +316,23 @@ export function useCalculations(state: {
           state.debtPayments.value -
           state.monthlyCommitments.value -
           extraMonthlyCosts.value -
-          (state.purchaseType.value === "cash" ? 0 : monthlyPayment.value) -
-          state.monthlySaving.value,
+          planMonthlyPayment.value -
+          plannedMonthlySaving.value,
       ),
     },
     financeHealth: [
       {
         label: "Housing",
-        ...evaluateGuideline(housingCost.value, state.income.value, {
+        ...evaluateGuideline(monthlyHousing.value, state.income.value, {
           max: 0.3,
         }),
       },
       {
         label: "Housing + debt",
         ...evaluateGuideline(
-          housingCost.value + state.debtPayments.value,
+          monthlyHousing.value +
+            planMonthlyPayment.value +
+            state.debtPayments.value,
           state.income.value,
           { max: 0.36 },
         ),
@@ -278,36 +360,42 @@ export function useCalculations(state: {
       },
       {
         label: "Savings",
-        ...evaluateGuideline(state.monthlySaving.value, state.income.value, {
+        ...evaluateGuideline(plannedMonthlySaving.value, state.income.value, {
           min: 0.1,
         }),
       },
       {
         label: "Debt repayments",
-        ...evaluateGuideline(state.debtPayments.value, state.income.value, {
-          max: 0.2,
-        }),
+        ...evaluateGuideline(
+          state.debtPayments.value + planMonthlyPayment.value,
+          state.income.value,
+          {
+            max: 0.2,
+          },
+        ),
       },
     ],
   }));
 
   return {
-    extraMonthlyCosts,
     housingRatio,
     housingCost,
-    monthlyHousing,
     monthlyPayment,
+    interestCost,
     fullPurchasePrice,
     moveTotal,
     emergencyTarget,
     cashAvailable,
+    listedMonthlyCosts,
     disposableMargin,
     disposableMarginPercentage,
+    effectiveMonthlySaving,
     cashPurchaseMonths,
     cashAmountStillNeeded,
     emergencyGap,
     emergencyMonths,
     ratio,
+    debtRepaymentRatio,
     score,
     verdict,
     minSalary,
