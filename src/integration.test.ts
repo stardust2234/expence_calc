@@ -242,8 +242,10 @@ describe("localStorage integration", () => {
     ).toBe("5100");
     expect(wrapper.findAll(".extra-cost")).toHaveLength(1);
     expect(
-      (wrapper.find('.extra-cost input[aria-label="Childcare name"]')
-        .element as HTMLInputElement).value,
+      (
+        wrapper.find('.extra-cost input[aria-label="Childcare name"]')
+          .element as HTMLInputElement
+      ).value,
     ).toBe("Childcare");
     wrapper.unmount();
   });
