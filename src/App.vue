@@ -140,9 +140,18 @@ const showNotice = (message: string) => {
     notice.value = message;
     setTimeout(() => (notice.value = ""), 4000);
   },
-  setNumeric = (target: Ref<number>, value: number) => {
+  numericSetter = (target: Ref<number>) => (value: number) => {
     target.value = sanitizeNumber(value);
   },
+  setIncome = numericSetter(income),
+  setPrice = numericSetter(price),
+  setDeposit = numericSetter(deposit),
+  setRent = numericSetter(rent),
+  setMoving = numericSetter(moving),
+  setFurnishings = numericSetter(furnishings),
+  setUtilities = numericSetter(utilities),
+  setSaved = numericSetter(saved),
+  setMonthlySaving = numericSetter(monthlySaving),
   setTerm = (value: number) => {
     term.value = sanitizeTermMonths(value);
   },
@@ -262,10 +271,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                 min="0"
                 max="1000000000"
                 @input="
-                  setNumeric(
-                    income,
-                    Number(($event.target as HTMLInputElement).value),
-                  )
+                  setIncome(Number(($event.target as HTMLInputElement).value))
                 "
               /><span>£</span></label
             ><PurchaseCalculator
@@ -275,8 +281,8 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               :deposit="deposit"
               :term="term"
               :rate="rate"
-              @update:price="setNumeric(price, $event)"
-              @update:deposit="setNumeric(deposit, $event)"
+              @update:price="setPrice($event)"
+              @update:deposit="setDeposit($event)"
               @update:term="setTerm($event)"
               @update:rate="rate = sanitizeRate($event)"
               :cash-available="cashAvailable"
@@ -286,17 +292,17 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               :moving="moving"
               :furnishings="furnishings"
               :utilities="utilities"
-              @update:rent="setNumeric(rent, $event)"
-              @update:moving="setNumeric(moving, $event)"
-              @update:furnishings="setNumeric(furnishings, $event)"
-              @update:utilities="setNumeric(utilities, $event)"
+              @update:rent="setRent($event)"
+              @update:moving="setMoving($event)"
+              @update:furnishings="setFurnishings($event)"
+              @update:utilities="setUtilities($event)"
             /><SafetyCalculator
               v-else
               :essentials="essentials"
               :saved="saved"
               :monthly-saving="monthlySaving"
-              @update:saved="setNumeric(saved, $event)"
-              @update:monthly-saving="setNumeric(monthlySaving, $event)"
+              @update:saved="setSaved($event)"
+              @update:monthly-saving="setMonthlySaving($event)"
               :available-monthly="Math.max(0, disposableMargin)"
               :income="income"
             /><button v-if="mode !== 'safety'" class="add" @click="addCost">
