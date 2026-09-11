@@ -99,7 +99,7 @@ describe("localStorage integration", () => {
     await wrapper.vm.$nextTick();
     expect(
       (wrapper.find("#purchase-term").element as HTMLSelectElement).value,
-    ).toBe("600");
+    ).toBe("60");
     wrapper.unmount();
   });
   it("exposes calculator tabs and restores focus after closing preferences", async () => {

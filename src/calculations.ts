@@ -11,7 +11,7 @@ export const sanitizeRate = (value: number | string): number =>
 const sanitizeAggregate = (value: number): number =>
   Number.isFinite(value) ? Math.max(0, value) : 0;
 export const sanitizeTermMonths = (termMonths: number): number =>
-  Math.min(600, Math.max(1, sanitizeNumber(termMonths)));
+  Math.min(60, Math.max(1, sanitizeNumber(termMonths)));
 const calculateUnroundedMonthlyPayment = (
   price: number,
   deposit: number,
