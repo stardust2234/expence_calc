@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.vue";
+import PreferencesModal from "./components/PreferencesModal.vue";
 import ResultsPage from "./components/results/ResultsPage.vue";
 
 const resultProps = {
@@ -42,6 +43,32 @@ describe("Results page integration", () => {
   });
 });
 
+describe("dialog accessibility", () => {
+  it("focuses an initially open dialog", async () => {
+    const wrapper = mount(PreferencesModal, {
+      attachTo: document.body,
+      props: {
+        open: true,
+        income: 0,
+        rent: 0,
+        utilities: 0,
+        transport: 0,
+        food: 0,
+        debtPayments: 0,
+        monthlySaving: 0,
+        monthlyCommitments: 0,
+        saved: 0,
+      },
+    });
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.get('[aria-label="Close preferences"]').element,
+    );
+    wrapper.unmount();
+  });
+});
+
 describe("localStorage integration", () => {
   beforeEach(() => localStorage.clear());
   it("restores persisted income and preferences on mount", async () => {
@@ -63,6 +90,73 @@ describe("localStorage integration", () => {
     ).toBe("5100");
     wrapper.unmount();
   });
+  it("recomputes essentials instead of restoring a persisted aggregate", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ essentials: 2_000_000_000 }),
+    );
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+
+    expect(
+      (wrapper.find("#essential-spend").element as HTMLInputElement).value,
+    ).toBe("1700.00");
+    wrapper.unmount();
+  });
+  it("bounds a persisted loan term to the available selector range", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ term: 1_000_000_000 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#purchase-term").element as HTMLSelectElement).value,
+    ).toBe("60");
+    wrapper.unmount();
+  });
+  it("restores a persisted loan term to the nearest selector option", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ term: 6 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#purchase-term").element as HTMLSelectElement).value,
+    ).toBe("12");
+    wrapper.unmount();
+  });
+  it("exposes calculator tabs and restores focus after closing preferences", async () => {
+    const wrapper = mount(App, { attachTo: document.body });
+    const tabs = wrapper.get('[role="tablist"]');
+    expect(tabs.findAll('[role="tab"]')).toHaveLength(4);
+    expect(tabs.find('[aria-selected="true"]').text()).toContain(
+      "Big purchase",
+    );
+
+    const menuButton = wrapper.get(".menu-button");
+    (menuButton.element as HTMLElement).focus();
+    await menuButton.trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.get('[aria-label="Close preferences"]').element,
+    );
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(menuButton.element);
+    wrapper.unmount();
+  });
   it("persists a changed income value", async () => {
     const wrapper = mount(App);
     await wrapper.find("#monthly-income").setValue("5000");
@@ -71,6 +165,27 @@ describe("localStorage integration", () => {
       JSON.parse(localStorage.getItem("worthwhile-calculator-state") || "{}")
         .income,
     ).toBe(5000);
+    wrapper.unmount();
+  });
+  it("normalizes an extreme income at the input boundary", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#monthly-income").setValue("2000000000");
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("1000000000");
+    wrapper.unmount();
+  });
+  it("moves tab focus to the Results tab on End", async () => {
+    const wrapper = mount(App, { attachTo: document.body });
+    const movingTab = wrapper
+      .findAll('[role="tab"]')
+      .find((tab) => tab.text().includes("Moving home"))!;
+    (movingTab.element as HTMLElement).focus();
+    await movingTab.trigger("keydown", { key: "End" });
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.find('[data-tab="results"]').element,
+    );
     wrapper.unmount();
   });
   it("updates Safety net essentials from Preferences", async () => {
@@ -109,6 +224,29 @@ describe("localStorage integration", () => {
 
     expect(wrapper.findAll("script")).toHaveLength(0);
     expect(wrapper.find('input[aria-label*="<img"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+  it("ignores malformed persisted extra costs while restoring valid fields", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        income: 5100,
+        extraCosts: [null, { id: 2, name: "Childcare", amount: 250 }],
+      }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("5100");
+    expect(wrapper.findAll(".extra-cost")).toHaveLength(1);
+    expect(
+      (
+        wrapper.find('.extra-cost input[aria-label="Childcare name"]')
+          .element as HTMLInputElement
+      ).value,
+    ).toBe("Childcare");
     wrapper.unmount();
   });
   it("sanitizes negative and empty persisted numeric values", async () => {
@@ -369,7 +507,9 @@ describe("localStorage integration", () => {
       .find((button) => button.text() === "Pay cash")!
       .trigger("click");
     expect(wrapper.find(".copy").text()).toContain("approximately 9 months");
-    expect(wrapper.find(".copy").text()).not.toContain("approximately 5 months");
+    expect(wrapper.find(".copy").text()).not.toContain(
+      "approximately 5 months",
+    );
     wrapper.unmount();
   });
 

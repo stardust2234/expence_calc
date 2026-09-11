@@ -10,6 +10,8 @@ import {
   calculateSuggestedSaving,
   isWithinComfortRule,
   sanitizeNumber,
+  sanitizeRate,
+  sanitizeAggregate,
   calculateBudgetRatio,
   evaluateGuideline,
   getEssentialCostPosition,
@@ -45,6 +47,24 @@ describe("financial calculations", () => {
   it("sanitizes negative and empty values", () => {
     expect(sanitizeNumber(-10)).toBe(0);
     expect(sanitizeNumber("")).toBe(0);
+    expect(sanitizeNumber(Number.NaN)).toBe(0);
+    expect(sanitizeNumber(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(sanitizeNumber(2_000_000_000)).toBe(1_000_000_000);
+  });
+  it("bounds rates consistently with loan calculations", () => {
+    expect(sanitizeRate(200)).toBe(100);
+    expect(calculateMonthlyPayment(12000, 0, 12, sanitizeRate(200))).toBe(
+      calculateMonthlyPayment(12000, 0, 12, 100),
+    );
+  });
+  it("keeps loan calculations finite for extreme inputs", () => {
+    expect(calculateMonthlyPayment(1e12, 0, 1e12, 1e12)).toBe(84_023_052);
+    expect(Number.isFinite(calculateInterestCost(1e12, 0, 1e12, 1e12))).toBe(
+      true,
+    );
+  });
+  it("uses the bounded term for interest as well as payment", () => {
+    expect(calculateInterestCost(12000, 0, 1e12, 0)).toBe(0);
   });
   it("treats zero income as unaffordable", () =>
     expect(calculateHousingRatio(500, 0)).toBe(1));
@@ -78,6 +98,12 @@ describe("financial calculations", () => {
   it("handles a zero-income affordability ratio safely", () => {
     expect(calculateHousingRatio(0, 0)).toBe(1);
     expect(isWithinComfortRule(calculateHousingRatio(500, 0))).toBe(false);
+  });
+  it("preserves aggregate costs above the per-input limit", () => {
+    expect(sanitizeAggregate(6_000_000_000)).toBe(6_000_000_000);
+    expect(calculateHousingRatio(6_000_000_000, 1_000_000_000)).toBe(6);
+    expect(calculateEmergencyTarget(6_000_000_000)).toBe(36_000_000_000);
+    expect(calculateEmergencyMonths(36_000_000_000, 0, 1_000_000_000)).toBe(36);
   });
   it("evaluates reusable budget guidelines", () => {
     expect(calculateBudgetRatio(300, 1000)).toBe(0.3);

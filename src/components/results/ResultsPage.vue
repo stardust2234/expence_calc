@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { FileDown, HelpCircle, X } from "lucide-vue-next";
+import { useDialogAccessibility } from "../../composables/useDialogAccessibility";
 import type { FinancialResults } from "../../types/financial";
 import CashFlowBreakdown from "./CashFlowBreakdown.vue";
 import FinanceHealth from "./FinanceHealth.vue";
@@ -9,6 +10,14 @@ defineProps<{
 }>();
 const emit = defineEmits<{ (e: "back"): void }>();
 const help = ref<{ title: string; copy: string } | null>(null);
+const helpDialog = ref<HTMLElement | null>(null);
+useDialogAccessibility(
+  computed(() => help.value !== null),
+  helpDialog,
+  () => {
+    help.value = null;
+  },
+);
 const exportPdf = () => window.print();
 </script>
 <template>
@@ -146,7 +155,7 @@ const exportPdf = () => window.print();
       :aria-label="help.title"
       @click.self="help = null"
     >
-      <div class="preferences-panel explainer-panel">
+      <div ref="helpDialog" class="preferences-panel explainer-panel">
         <button
           class="close-preferences"
           type="button"

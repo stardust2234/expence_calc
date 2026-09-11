@@ -8,9 +8,7 @@ test.describe("responsive and print layouts", () => {
     await page.goto("/");
 
     await expect(page.locator(".menu-button")).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Big purchase" }),
-    ).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Big purchase" })).toBeVisible();
     const columns = await page
       .locator(".grid")
       .evaluate((element) =>
@@ -20,7 +18,7 @@ test.describe("responsive and print layouts", () => {
       );
     expect(columns).toHaveLength(1);
 
-    await page.getByText("Results", { exact: true }).click();
+    await page.getByRole("tab", { name: "Results" }).click();
     await expect(page.locator(".results-page")).toBeVisible();
     const actionsFit = await page
       .locator(".results-actions")
@@ -37,7 +35,7 @@ test.describe("responsive and print layouts", () => {
 
   test("removes interactive controls from the print view", async ({ page }) => {
     await page.goto("/");
-    await page.getByText("Results", { exact: true }).click();
+    await page.getByRole("tab", { name: "Results" }).click();
     await page.emulateMedia({ media: "print" });
 
     await expect(page.locator(".results-actions")).toBeHidden();
@@ -68,7 +66,7 @@ test.describe("responsive and print layouts", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
 
-    const resultsTab = page.getByRole("button", { name: "Results" });
+    const resultsTab = page.getByRole("tab", { name: "Results" });
     await resultsTab.scrollIntoViewIfNeeded();
     await expect(resultsTab).toBeVisible();
     await resultsTab.click();

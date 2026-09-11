@@ -44,6 +44,7 @@ const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
       :value="essentialSpendDisplay"
       type="number"
       min="0"
+      max="1000000000"
       readonly
     />
     <span>£</span>
@@ -57,6 +58,7 @@ const essentialSpendDisplay = computed(() => props.essentials.toFixed(2));
       :value="saved"
       type="number"
       min="0"
+      max="1000000000"
       @input="
         emit('update:saved', Number(($event.target as HTMLInputElement).value))
       "

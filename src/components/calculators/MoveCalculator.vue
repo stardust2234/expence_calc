@@ -30,6 +30,7 @@ const emit = defineEmits<{
       :value="rent"
       type="number"
       min="0"
+      max="1000000000"
       @input="
         emit('update:rent', Number(($event.target as HTMLInputElement).value))
       "
@@ -43,6 +44,7 @@ const emit = defineEmits<{
         :value="moving"
         type="number"
         min="0"
+        max="1000000000"
         @input="
           emit(
             'update:moving',
@@ -58,6 +60,7 @@ const emit = defineEmits<{
         :value="furnishings"
         type="number"
         min="0"
+        max="1000000000"
         @input="
           emit(
             'update:furnishings',
@@ -74,6 +77,7 @@ const emit = defineEmits<{
       :value="utilities"
       type="number"
       min="0"
+      max="1000000000"
       @input="
         emit(
           'update:utilities',

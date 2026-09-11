@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { HelpCircle, X } from "lucide-vue-next";
 import type { GuidelineStatus } from "../../calculations";
+import { useDialogAccessibility } from "../../composables/useDialogAccessibility";
 
 defineProps<{
   indicators: Array<{
@@ -25,6 +26,14 @@ const positionLabel = (position?: string) =>
         .replace(/^\w/, (letter: string) => letter.toUpperCase())
     : undefined;
 const showHelp = ref(false);
+const helpDialog = ref<HTMLElement | null>(null);
+useDialogAccessibility(
+  computed(() => showHelp.value),
+  helpDialog,
+  () => {
+    showHelp.value = false;
+  },
+);
 </script>
 
 <template>
@@ -64,7 +73,7 @@ const showHelp = ref(false);
       aria-labelledby="finance-health-help-title"
       @click.self="showHelp = false"
     >
-      <div class="preferences-panel explainer-panel">
+      <div ref="helpDialog" class="preferences-panel explainer-panel">
         <button
           class="close-preferences"
           type="button"
@@ -76,15 +85,12 @@ const showHelp = ref(false);
         <p class="eyebrow">FINANCE HEALTH GUIDELINES</p>
         <h2 id="finance-health-help-title">How thresholds work</h2>
         <p class="preferences-copy">
-          These comparisons use common budgeting heuristics: 
-          <br>Housing up to 30%,
-          <br>Housing plus debt up to 36%, 
-          <br>Debt repayments up to 20%,
-          <br>Transport 10-15%,
-          <br>Food 10-15%,
-          <br>Utilities 5-10%,
-          <br>Savings/Investing 10-20%.
-          <br>They are estimates to support planning, not a validated financial assessment or advice.
+          These comparisons use common budgeting heuristics:
+          <br />Housing up to 30%, <br />Housing plus debt up to 36%, <br />Debt
+          repayments up to 20%, <br />Transport 10-15%, <br />Food 10-15%,
+          <br />Utilities 5-10%, <br />Savings/Investing 10-20%. <br />They are
+          estimates to support planning, not a validated financial assessment or
+          advice.
         </p>
       </div>
     </div>
