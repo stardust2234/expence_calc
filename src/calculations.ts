@@ -12,6 +12,15 @@ const sanitizeAggregate = (value: number): number =>
   Number.isFinite(value) ? Math.max(0, value) : 0;
 export const sanitizeTermMonths = (termMonths: number): number =>
   Math.min(60, Math.max(1, sanitizeNumber(termMonths)));
+export const normalizePurchaseTerm = (termMonths: number): number => {
+  const supportedTerms = [12, 24, 36, 48, 60];
+  const boundedTerm = sanitizeTermMonths(termMonths);
+  return supportedTerms.reduce((nearest, candidate) =>
+    Math.abs(candidate - boundedTerm) < Math.abs(nearest - boundedTerm)
+      ? candidate
+      : nearest,
+  );
+};
 const calculateUnroundedMonthlyPayment = (
   price: number,
   deposit: number,

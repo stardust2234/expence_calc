@@ -102,6 +102,18 @@ describe("localStorage integration", () => {
     ).toBe("60");
     wrapper.unmount();
   });
+  it("restores a persisted loan term to the nearest selector option", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ term: 6 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#purchase-term").element as HTMLSelectElement).value,
+    ).toBe("12");
+    wrapper.unmount();
+  });
   it("exposes calculator tabs and restores focus after closing preferences", async () => {
     const wrapper = mount(App, { attachTo: document.body });
     const tabs = wrapper.get('[role="tablist"]');
