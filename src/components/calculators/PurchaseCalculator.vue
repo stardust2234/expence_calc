@@ -43,6 +43,7 @@ const emit = defineEmits<{
       :value="price"
       type="number"
       min="0"
+      max="1000000000"
       @input="
         emit('update:price', Number(($event.target as HTMLInputElement).value))
       "
@@ -56,6 +57,7 @@ const emit = defineEmits<{
         :value="deposit"
         type="number"
         min="0"
+        max="1000000000"
         @input="
           emit(
             'update:deposit',
@@ -91,6 +93,7 @@ const emit = defineEmits<{
       type="number"
       min="0"
       step=".1"
+      max="100"
       @input="
         emit('update:rate', Number(($event.target as HTMLInputElement).value))
       "

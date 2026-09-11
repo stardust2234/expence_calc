@@ -1,5 +1,11 @@
-export const sanitizeNumber = (value: number | string): number =>
-  Math.max(0, Number(value) || 0);
+export const MAX_FINANCIAL_VALUE = 1_000_000_000;
+
+export const sanitizeNumber = (value: number | string): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed)
+    ? Math.min(MAX_FINANCIAL_VALUE, Math.max(0, parsed))
+    : 0;
+};
 const calculateUnroundedMonthlyPayment = (
   price: number,
   deposit: number,
@@ -10,8 +16,8 @@ const calculateUnroundedMonthlyPayment = (
     0,
     sanitizeNumber(price) - sanitizeNumber(deposit),
   );
-  const months = Math.max(1, sanitizeNumber(termMonths));
-  const monthlyRate = sanitizeNumber(annualRate) / 1200;
+  const months = Math.min(600, Math.max(1, sanitizeNumber(termMonths)));
+  const monthlyRate = Math.min(100, sanitizeNumber(annualRate)) / 1200;
   if (monthlyRate === 0) return principal / months;
   return (
     (principal * monthlyRate * (1 + monthlyRate) ** months) /
