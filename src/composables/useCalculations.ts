@@ -12,6 +12,7 @@ import {
   getEssentialCostPosition,
   isWithinComfortRule,
   sanitizeNumber,
+  sanitizeAggregate,
   sanitizeTermMonths,
 } from "../calculations";
 import type { FinancialResults } from "../types/financial";
@@ -99,7 +100,7 @@ export function useCalculations(state: {
   const disposableMargin = computed(
     () =>
       sanitizeNumber(state.income.value) -
-      sanitizeNumber(state.essentials.value) -
+      sanitizeAggregate(state.essentials.value) -
       extraMonthlyCosts.value,
   );
   const disposableMarginPercentage = computed(() =>

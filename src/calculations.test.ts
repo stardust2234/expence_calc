@@ -99,6 +99,7 @@ describe("financial calculations", () => {
     expect(isWithinComfortRule(calculateHousingRatio(500, 0))).toBe(false);
   });
   it("preserves aggregate costs above the per-input limit", () => {
+    expect(sanitizeAggregate(6_000_000_000)).toBe(6_000_000_000);
     expect(calculateHousingRatio(6_000_000_000, 1_000_000_000)).toBe(6);
     expect(calculateEmergencyTarget(6_000_000_000)).toBe(36_000_000_000);
     expect(calculateEmergencyMonths(36_000_000_000, 0, 1_000_000_000)).toBe(36);

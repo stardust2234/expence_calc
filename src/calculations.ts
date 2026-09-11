@@ -8,7 +8,7 @@ export const sanitizeNumber = (value: number | string): number => {
 };
 export const sanitizeRate = (value: number | string): number =>
   Math.min(100, sanitizeNumber(value));
-const sanitizeAggregate = (value: number): number =>
+export const sanitizeAggregate = (value: number): number =>
   Number.isFinite(value) ? Math.max(0, value) : 0;
 export const sanitizeTermMonths = (termMonths: number): number =>
   Math.min(60, Math.max(1, sanitizeNumber(termMonths)));
