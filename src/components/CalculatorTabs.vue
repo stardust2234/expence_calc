@@ -9,15 +9,14 @@ const emit = defineEmits<{
   ): void;
 }>();
 const tabs = ["purchase", "move", "safety", "results"] as const;
-const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
-  const nextIndex =
-    (tabs.indexOf(current) + offset + tabs.length) % tabs.length;
-  emit("update:modelValue", tabs[nextIndex]);
+const selectTab = (tab: (typeof tabs)[number]) => {
+  emit("update:modelValue", tab);
   void nextTick(() =>
-    document
-      .querySelector<HTMLElement>(`[data-tab="${tabs[nextIndex]}"]`)
-      ?.focus(),
+    document.querySelector<HTMLElement>(`[data-tab="${tab}"]`)?.focus(),
   );
+};
+const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
+  selectTab(tabs[(tabs.indexOf(current) + offset + tabs.length) % tabs.length]);
 };
 </script>
 <template>
@@ -36,7 +35,7 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
       @keydown.home.prevent="
         selectRelativeTab('purchase', -tabs.indexOf('purchase'))
       "
-      @keydown.end.prevent="selectRelativeTab('purchase', tabs.length - 1)"
+      @keydown.end.prevent="selectTab('results')"
       @click="emit('update:modelValue', 'purchase')"
     >
       <HandCoins :size="16" /> Big purchase</button
@@ -52,7 +51,7 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
       @keydown.left.prevent="selectRelativeTab('move', -1)"
       @keydown.right.prevent="selectRelativeTab('move', 1)"
       @keydown.home.prevent="selectRelativeTab('move', -tabs.indexOf('move'))"
-      @keydown.end.prevent="selectRelativeTab('move', tabs.length - 1)"
+      @keydown.end.prevent="selectTab('results')"
       @click="emit('update:modelValue', 'move')"
     >
       <Home :size="16" /> Moving home</button
@@ -70,7 +69,7 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
       @keydown.home.prevent="
         selectRelativeTab('safety', -tabs.indexOf('safety'))
       "
-      @keydown.end.prevent="selectRelativeTab('safety', tabs.length - 1)"
+      @keydown.end.prevent="selectTab('results')"
       @click="emit('update:modelValue', 'safety')"
     >
       <ShieldCheck :size="16" /> Safety net</button
@@ -88,7 +87,7 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
       @keydown.home.prevent="
         selectRelativeTab('results', -tabs.indexOf('results'))
       "
-      @keydown.end.prevent="selectRelativeTab('results', 0)"
+      @keydown.end.prevent="selectTab('results')"
       @click="emit('update:modelValue', 'results')"
     >
       <CheckCircle2 :size="16" /> Results

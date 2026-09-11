@@ -117,9 +117,10 @@ Purchase and moving scores are product-specific signals, not credit scores:
 clamp(round(100 - total cost ratio * 145 - move-in penalty), 0, 100)
 ```
 
-For moving plans, the move-in penalty is move-in total divided by income,
-divided by two. Safety-net score is the percentage of the emergency target
-already saved, capped at 100. A zero emergency target scores 100.
+For moving plans, the move-in penalty is move-in total divided by the greater
+of take-home income or £1, divided by two. Safety-net score is the percentage
+of the emergency target already saved, capped at 100. A zero emergency target
+scores 100.
 
 The labels `Comfortable`, `Worth a closer look`, and `This may stretch you` are
 based on the model's ratios and score. They must not be interpreted as an

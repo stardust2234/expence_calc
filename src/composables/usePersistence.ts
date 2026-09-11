@@ -49,7 +49,7 @@ export function usePersistence(
   };
   onMounted(() => {
     try {
-        const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+      const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
       if (!stored) return;
       Object.entries(stored).forEach(([key, value]) => {
         if (key === "extraCosts" && Array.isArray(value)) {
@@ -71,9 +71,9 @@ export function usePersistence(
           const target = values[key];
           target.value =
             typeof target.value === "number"
-                ? key === "rate"
-                  ? sanitizeRate(value as number)
-                  : key === "term"
+              ? key === "rate"
+                ? sanitizeRate(value as number)
+                : key === "term"
                   ? normalizePurchaseTerm(value as number)
                   : sanitizeNumber(value as number)
               : value;

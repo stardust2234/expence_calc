@@ -48,15 +48,19 @@ export function useDialogAccessibility(
     }
   };
 
-  watch(open, (isOpen) => {
-    if (isOpen) {
-      previouslyFocused = document.activeElement as HTMLElement | null;
-      void focusFirst();
-    } else if (previouslyFocused?.isConnected) {
-      previouslyFocused.focus();
-      previouslyFocused = null;
-    }
-  }, { immediate: true });
+  watch(
+    open,
+    (isOpen) => {
+      if (isOpen) {
+        previouslyFocused = document.activeElement as HTMLElement | null;
+        void focusFirst();
+      } else if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus();
+        previouslyFocused = null;
+      }
+    },
+    { immediate: true },
+  );
   onMounted(() => document.addEventListener("keydown", handleKeydown));
   onBeforeUnmount(() => {
     document.removeEventListener("keydown", handleKeydown);

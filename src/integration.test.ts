@@ -241,7 +241,10 @@ describe("localStorage integration", () => {
       (wrapper.find("#monthly-income").element as HTMLInputElement).value,
     ).toBe("5100");
     expect(wrapper.findAll(".extra-cost")).toHaveLength(1);
-    expect(wrapper.text()).toContain("Childcare");
+    expect(
+      (wrapper.find('.extra-cost input[aria-label="Childcare name"]')
+        .element as HTMLInputElement).value,
+    ).toBe("Childcare");
     wrapper.unmount();
   });
   it("sanitizes negative and empty persisted numeric values", async () => {
