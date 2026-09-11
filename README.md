@@ -38,9 +38,9 @@ npm run build
 
 ## Deployment and security
 
-The build output is in `dist/`. The `public/_headers` file is copied into the build and configures CSP, `nosniff`, referrer, permissions, and HSTS headers for hosts that support the `_headers` format, including Cloudflare Pages and Netlify-style deployments.
+The build output is in `dist/`. The `public/_headers` file is copied into the build and configures CSP, `nosniff`, referrer, permissions, and HSTS headers for hosts that support the `_headers` format, including Cloudflare Pages and Netlify-style deployments. On other hosts, configure the same response headers in the hosting platform rather than relying on the copied file.
 
-Deploy the site over HTTPS and configure the hosting provider to redirect HTTP to HTTPS before enabling HSTS. HSTS is already declared in `_headers` and should only be used when HTTPS is enforced for the domain and its subdomains.
+Deploy the site over HTTPS and configure the hosting provider to redirect HTTP to HTTPS before enabling HSTS. HSTS is declared in `_headers` for the current host only; add `includeSubDomains` only after HTTPS is enforced for every subdomain.
 
 The CSP currently allows only same-origin scripts, styles, fonts, images, and connections. Fonts use local/system fallbacks and do not require an external Google Fonts request.
 
