@@ -25,7 +25,9 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
     <button
       type="button"
       role="tab"
+      id="calculator-tab-purchase"
       data-tab="purchase"
+      aria-controls="calculator-panel"
       :class="{ selected: modelValue === 'purchase' }"
       :aria-selected="modelValue === 'purchase'"
       :tabindex="modelValue === 'purchase' ? 0 : -1"
@@ -41,7 +43,9 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
     ><button
       type="button"
       role="tab"
+      id="calculator-tab-move"
       data-tab="move"
+      aria-controls="calculator-panel"
       :class="{ selected: modelValue === 'move' }"
       :aria-selected="modelValue === 'move'"
       :tabindex="modelValue === 'move' ? 0 : -1"
@@ -55,7 +59,9 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
     ><button
       type="button"
       role="tab"
+      id="calculator-tab-safety"
       data-tab="safety"
+      aria-controls="calculator-panel"
       :class="{ selected: modelValue === 'safety' }"
       :aria-selected="modelValue === 'safety'"
       :tabindex="modelValue === 'safety' ? 0 : -1"
@@ -71,7 +77,9 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
     ><button
       type="button"
       role="tab"
+      id="calculator-tab-results"
       data-tab="results"
+      aria-controls="calculator-panel"
       :class="{ selected: modelValue === 'results' }"
       :aria-selected="modelValue === 'results'"
       :tabindex="modelValue === 'results' ? 0 : -1"
