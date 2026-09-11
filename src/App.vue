@@ -224,15 +224,15 @@ const selectCalculator = (next: CalculatorMode | "results") => {
           preferencesOpen = false;
           showNotice('Preferences saved on this device.');
         "
-        @update:income="income = $event"
-        @update:rent="rent = $event"
-        @update:utilities="utilities = $event"
-        @update:transport="transport = $event"
-        @update:food="food = $event"
-        @update:debt-payments="debtPayments = $event"
-        @update:monthly-saving="monthlySaving = $event"
-        @update:monthly-commitments="monthlyCommitments = $event"
-        @update:saved="saved = $event"
+        @update:income="income = sanitizeNumber($event)"
+        @update:rent="rent = sanitizeNumber($event)"
+        @update:utilities="utilities = sanitizeNumber($event)"
+        @update:transport="transport = sanitizeNumber($event)"
+        @update:food="food = sanitizeNumber($event)"
+        @update:debt-payments="debtPayments = sanitizeNumber($event)"
+        @update:monthly-saving="monthlySaving = sanitizeNumber($event)"
+        @update:monthly-commitments="monthlyCommitments = sanitizeNumber($event)"
+        @update:saved="saved = sanitizeNumber($event)"
       />
       <div v-if="notice" class="notice" role="status">{{ notice }} ×</div>
       <CalculatorTabs

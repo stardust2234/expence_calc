@@ -55,6 +55,9 @@ describe("financial calculations", () => {
       true,
     );
   });
+  it("uses the bounded term for interest as well as payment", () => {
+    expect(calculateInterestCost(12000, 0, 1e12, 0)).toBe(0);
+  });
   it("treats zero income as unaffordable", () =>
     expect(calculateHousingRatio(500, 0)).toBe(1));
   it("handles zero saving pace and a reached target", () => {

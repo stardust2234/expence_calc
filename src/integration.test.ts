@@ -100,6 +100,27 @@ describe("localStorage integration", () => {
     ).toBe(5000);
     wrapper.unmount();
   });
+  it("normalizes an extreme income at the input boundary", async () => {
+    const wrapper = mount(App);
+    await wrapper.find("#monthly-income").setValue("2000000000");
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("1000000000");
+    wrapper.unmount();
+  });
+  it("moves tab focus to the Results tab on End", async () => {
+    const wrapper = mount(App, { attachTo: document.body });
+    const movingTab = wrapper
+      .findAll('[role="tab"]')
+      .find((tab) => tab.text().includes("Moving home"))!;
+    (movingTab.element as HTMLElement).focus();
+    await movingTab.trigger("keydown", { key: "End" });
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.find('[data-tab="results"]').element,
+    );
+    wrapper.unmount();
+  });
   it("updates Safety net essentials from Preferences", async () => {
     const wrapper = mount(App);
     await wrapper.find(".menu-button").trigger("click");
