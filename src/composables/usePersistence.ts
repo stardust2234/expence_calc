@@ -1,5 +1,9 @@
 import { onMounted, ref, watch, type Ref } from "vue";
-import { sanitizeNumber } from "../calculations";
+import {
+  sanitizeNumber,
+  normalizePurchaseTerm,
+  sanitizeRate,
+} from "../calculations";
 
 type PersistedValues = Record<string, Ref<unknown>>;
 type ExtraCost = { id: number; name: string; amount: number };
@@ -49,12 +53,29 @@ export function usePersistence(
       if (!stored) return;
       Object.entries(stored).forEach(([key, value]) => {
         if (key === "extraCosts" && Array.isArray(value)) {
-          extraCosts.value = value as ExtraCost[];
+          extraCosts.value = (value as unknown[])
+            .filter(
+              (cost): cost is ExtraCost =>
+                typeof cost === "object" &&
+                cost !== null &&
+                !Array.isArray(cost) &&
+                typeof (cost as ExtraCost).id === "number" &&
+                typeof (cost as ExtraCost).name === "string" &&
+                typeof (cost as ExtraCost).amount === "number",
+            )
+            .map((cost) => ({
+              ...cost,
+              amount: sanitizeNumber(cost.amount),
+            }));
         } else if (key in values) {
           const target = values[key];
           target.value =
             typeof target.value === "number"
-              ? sanitizeNumber(value as number)
+              ? key === "rate"
+                ? sanitizeRate(value as number)
+                : key === "term"
+                  ? normalizePurchaseTerm(value as number)
+                  : sanitizeNumber(value as number)
               : value;
         }
       });

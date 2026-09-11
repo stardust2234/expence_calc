@@ -13,7 +13,7 @@ appropriate for every person or jurisdiction.
 - Empty, invalid, `NaN`, and infinite numeric values are treated as zero.
 - Monetary values are capped at `£1,000,000,000` to prevent invalid or unsafe
   calculations from extreme input or tampered saved data.
-- Loan terms are constrained to 1 to 600 months for calculation purposes.
+- Loan terms are constrained to 1 to 60 months for calculation purposes.
 - Interest rates are constrained to 0% to 100% for calculation purposes.
 - Browser `localStorage` is convenience storage on the current device, not a
   source of verified financial data.
@@ -117,9 +117,10 @@ Purchase and moving scores are product-specific signals, not credit scores:
 clamp(round(100 - total cost ratio * 145 - move-in penalty), 0, 100)
 ```
 
-For moving plans, the move-in penalty is move-in total divided by income,
-divided by two. Safety-net score is the percentage of the emergency target
-already saved, capped at 100. A zero emergency target scores 100.
+For moving plans, the move-in penalty is move-in total divided by the greater
+of take-home income or £1, divided by two. Safety-net score is the percentage
+of the emergency target already saved, capped at 100. A zero emergency target
+scores 100.
 
 The labels `Comfortable`, `Worth a closer look`, and `This may stretch you` are
 based on the model's ratios and score. They must not be interpreted as an

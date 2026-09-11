@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  type Ref,
+} from "vue";
 import {
   AppHeader,
   CalculatorTabs,
@@ -17,7 +24,11 @@ import {
 } from "./composables/useFinancialState";
 import { useCalculations } from "./composables/useCalculations";
 import { usePersistence } from "./composables/usePersistence";
-import { sanitizeNumber } from "./calculations";
+import {
+  sanitizeNumber,
+  sanitizeRate,
+  sanitizeTermMonths,
+} from "./calculations";
 const {
   mode,
   view,
@@ -128,13 +139,32 @@ const storageKey = "worthwhile-calculator-state",
     debtPayments,
     saved,
     monthlySaving,
-    essentials,
     moving,
     furnishings,
   };
 const showNotice = (message: string) => {
     notice.value = message;
     setTimeout(() => (notice.value = ""), 4000);
+  },
+  menuButton = ref<HTMLElement | null>(null),
+  closePreferences = () => {
+    preferencesOpen.value = false;
+    void nextTick(() => menuButton.value?.focus());
+  },
+  numericSetter = (target: Ref<number>) => (value: number) => {
+    target.value = sanitizeNumber(value);
+  },
+  setIncome = numericSetter(income),
+  setPrice = numericSetter(price),
+  setDeposit = numericSetter(deposit),
+  setRent = numericSetter(rent),
+  setMoving = numericSetter(moving),
+  setFurnishings = numericSetter(furnishings),
+  setUtilities = numericSetter(utilities),
+  setSaved = numericSetter(saved),
+  setMonthlySaving = numericSetter(monthlySaving),
+  setTerm = (value: number) => {
+    term.value = sanitizeTermMonths(value);
   },
   persistence = usePersistence(
     storageKey,
@@ -172,6 +202,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
         <AppHeader />
         <button
           class="menu-button"
+          ref="menuButton"
           type="button"
           aria-label="Open menu"
           :aria-expanded="menuOpen"
@@ -219,175 +250,202 @@ const selectCalculator = (next: CalculatorMode | "results") => {
         :monthly-saving="monthlySaving"
         :monthly-commitments="monthlyCommitments"
         :saved="saved"
-        @close="preferencesOpen = false"
+        @close="closePreferences"
         @save="
-          preferencesOpen = false;
+          closePreferences();
           showNotice('Preferences saved on this device.');
         "
-        @update:income="income = $event"
-        @update:rent="rent = $event"
-        @update:utilities="utilities = $event"
-        @update:transport="transport = $event"
-        @update:food="food = $event"
-        @update:debt-payments="debtPayments = $event"
-        @update:monthly-saving="monthlySaving = $event"
-        @update:monthly-commitments="monthlyCommitments = $event"
-        @update:saved="saved = $event"
+        @update:income="income = sanitizeNumber($event)"
+        @update:rent="rent = sanitizeNumber($event)"
+        @update:utilities="utilities = sanitizeNumber($event)"
+        @update:transport="transport = sanitizeNumber($event)"
+        @update:food="food = sanitizeNumber($event)"
+        @update:debt-payments="debtPayments = sanitizeNumber($event)"
+        @update:monthly-saving="monthlySaving = sanitizeNumber($event)"
+        @update:monthly-commitments="
+          monthlyCommitments = sanitizeNumber($event)
+        "
+        @update:saved="saved = sanitizeNumber($event)"
       />
       <div v-if="notice" class="notice" role="status">{{ notice }} ×</div>
       <CalculatorTabs
         :model-value="view === 'results' ? 'results' : mode"
         @update:model-value="selectCalculator"
       />
-      <template v-if="view === 'calculators'"
-        ><div class="grid">
-          <section class="card inputs">
-            <label for="monthly-income"
-              >Monthly take-home income<input
-                id="monthly-income"
-                v-model.number="income"
-                type="number"
-                min="0"
-                max="1000000000"
-              /><span>£</span></label
-            ><PurchaseCalculator
-              v-if="mode === 'purchase'"
-              v-model:purchase-type="purchaseType"
-              v-model:price="price"
-              v-model:deposit="deposit"
-              v-model:term="term"
-              v-model:rate="rate"
-              :cash-available="cashAvailable"
-            /><MoveCalculator
-              v-else-if="mode === 'move'"
-              v-model:rent="rent"
-              v-model:moving="moving"
-              v-model:furnishings="furnishings"
-              v-model:utilities="utilities"
-            /><SafetyCalculator
-              v-else
-              v-model:essentials="essentials"
-              v-model:saved="saved"
-              v-model:monthly-saving="monthlySaving"
-              :available-monthly="Math.max(0, disposableMargin)"
-              :income="income"
-            /><button v-if="mode !== 'safety'" class="add" @click="addCost">
-              ＋ Add another cost
-            </button>
-            <div v-for="cost in extraCosts" :key="cost.id" class="extra-cost">
-              <input
-                v-model="cost.name"
-                :aria-label="`${cost.name} name`"
-              /><input
-                v-model.number="cost.amount"
-                type="number"
-                min="0"
-                aria-label="Monthly cost amount"
-              /><button
-                class="remove-cost"
-                type="button"
-                @click="removeCost(cost.id)"
-                :aria-label="`Remove ${cost.name}`"
-              >
-                ×
+      <div
+        id="calculator-panel"
+        role="tabpanel"
+        :aria-labelledby="`calculator-tab-${view === 'results' ? 'results' : mode}`"
+        tabindex="0"
+      >
+        <template v-if="view === 'calculators'"
+          ><div class="grid">
+            <section class="card inputs">
+              <label for="monthly-income"
+                >Monthly take-home income<input
+                  id="monthly-income"
+                  :value="income"
+                  type="number"
+                  min="0"
+                  max="1000000000"
+                  @input="
+                    setIncome(Number(($event.target as HTMLInputElement).value))
+                  "
+                /><span>£</span></label
+              ><PurchaseCalculator
+                v-if="mode === 'purchase'"
+                v-model:purchase-type="purchaseType"
+                :price="price"
+                :deposit="deposit"
+                :term="term"
+                :rate="rate"
+                @update:price="setPrice($event)"
+                @update:deposit="setDeposit($event)"
+                @update:term="setTerm($event)"
+                @update:rate="rate = sanitizeRate($event)"
+                :cash-available="cashAvailable"
+              /><MoveCalculator
+                v-else-if="mode === 'move'"
+                :rent="rent"
+                :moving="moving"
+                :furnishings="furnishings"
+                :utilities="utilities"
+                @update:rent="setRent($event)"
+                @update:moving="setMoving($event)"
+                @update:furnishings="setFurnishings($event)"
+                @update:utilities="setUtilities($event)"
+              /><SafetyCalculator
+                v-else
+                :essentials="essentials"
+                :saved="saved"
+                :monthly-saving="monthlySaving"
+                @update:saved="setSaved($event)"
+                @update:monthly-saving="setMonthlySaving($event)"
+                :available-monthly="Math.max(0, disposableMargin)"
+                :income="income"
+              /><button v-if="mode !== 'safety'" class="add" @click="addCost">
+                ＋ Add another cost
               </button>
-            </div>
-          </section>
-          <AffordabilityResult
-            :title="mode === 'safety' ? 'Preparedness plan' : verdict"
-            :score="score"
-            :copy="
-              mode === 'safety'
-                ? `Your target is ${fmt(emergencyTarget)}. You need ${fmt(emergencyGap)} to reach your goal. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(effectiveMonthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
-                : mode === 'purchase' && purchaseType === 'cash'
-                  ? cashAmountStillNeeded === 0
-                    ? `The full purchase price is ${fmt(fullPurchasePrice)}. It is covered without borrowing.`
-                    : cashPurchaseMonths === Infinity
-                      ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
-                      : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
-                  : mode === 'move'
-                    ? `Your first-month move-in cost is ${fmt(moveTotal)}. Housing is ${fmt(housingCost)} per month (${Math.round(housingRatio * 100)}% of income); housing and listed commitments together use ${Math.round(ratio * 100)}%.`
-                    : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
-            "
-            :primary-label="
-              mode === 'safety'
-                ? 'Emergency fund target'
-                : mode === 'purchase' && purchaseType === 'cash'
-                  ? 'Starting cash'
-                  : mode === 'purchase'
-                    ? 'Monthly payment'
-                    : 'Monthly rent'
-            "
-            :primary-value="
-              fmt(
+              <div v-for="cost in extraCosts" :key="cost.id" class="extra-cost">
+                <input
+                  v-model="cost.name"
+                  :aria-label="`${cost.name} name`"
+                /><input
+                  :value="cost.amount"
+                  type="number"
+                  min="0"
+                  aria-label="Monthly cost amount"
+                  @input="
+                    cost.amount = sanitizeNumber(
+                      Number(($event.target as HTMLInputElement).value),
+                    )
+                  "
+                /><button
+                  class="remove-cost"
+                  type="button"
+                  @click="removeCost(cost.id)"
+                  :aria-label="`Remove ${cost.name}`"
+                >
+                  ×
+                </button>
+              </div>
+            </section>
+            <AffordabilityResult
+              :title="mode === 'safety' ? 'Preparedness plan' : verdict"
+              :score="score"
+              :copy="
                 mode === 'safety'
-                  ? emergencyTarget
+                  ? `Your target is ${fmt(emergencyTarget)}. You need ${fmt(emergencyGap)} to reach your goal. ${emergencyGap === 0 ? 'Your target is reached.' : emergencyMonths === Infinity ? 'Increase your monthly saving pace to calculate a finish date.' : `At ${fmt(effectiveMonthlySaving)} per month, you have ${emergencyMonths} month${emergencyMonths === 1 ? '' : 's'} to go.`}`
+                  : mode === 'purchase' && purchaseType === 'cash'
+                    ? cashAmountStillNeeded === 0
+                      ? `The full purchase price is ${fmt(fullPurchasePrice)}. It is covered without borrowing.`
+                      : cashPurchaseMonths === Infinity
+                        ? `The full purchase price is ${fmt(fullPurchasePrice)}. It cannot currently be funded from your available monthly surplus.`
+                        : `The full purchase price is ${fmt(fullPurchasePrice)}. At your planned saving pace, you can afford this without borrowing in approximately ${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'} if your current income and essential expenses remain unchanged.`
+                    : mode === 'move'
+                      ? `Your first-month move-in cost is ${fmt(moveTotal)}. Housing is ${fmt(housingCost)} per month (${Math.round(housingRatio * 100)}% of income); housing and listed commitments together use ${Math.round(ratio * 100)}%.`
+                      : `Your estimated monthly purchase payment is ${fmt(monthlyPayment)} per month (${Math.round(housingRatio * 100)}% of take-home income). Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
+              "
+              :primary-label="
+                mode === 'safety'
+                  ? 'Emergency fund target'
+                  : mode === 'purchase' && purchaseType === 'cash'
+                    ? 'Starting cash'
+                    : mode === 'purchase'
+                      ? 'Monthly payment'
+                      : 'Monthly rent'
+              "
+              :primary-value="
+                fmt(
+                  mode === 'safety'
+                    ? emergencyTarget
+                    : mode === 'purchase'
+                      ? purchaseType === 'cash'
+                        ? cashAvailable
+                        : monthlyPayment
+                      : rent,
+                )
+              "
+              :secondary-label="
+                mode === 'purchase' && purchaseType === 'cash'
+                  ? 'Time to save'
                   : mode === 'purchase'
-                    ? purchaseType === 'cash'
-                      ? cashAvailable
-                      : monthlyPayment
-                    : rent,
-              )
-            "
-            :secondary-label="
-              mode === 'purchase' && purchaseType === 'cash'
-                ? 'Time to save'
-                : mode === 'purchase'
-                  ? 'Interest cost'
-                  : mode === 'safety'
-                    ? 'Time to save'
-                    : 'Suggested housing max'
-            "
-            :secondary-value="
-              mode === 'purchase' && purchaseType === 'cash'
-                ? cashAmountStillNeeded === 0
-                  ? 'Covered this month'
-                  : cashPurchaseMonths === Infinity
-                    ? 'Not possible'
-                    : `${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'}`
-                : mode === 'purchase'
-                  ? fmt(interestCost)
-                  : mode === 'safety'
-                    ? emergencyGap === 0
-                      ? 'Target reached'
-                      : emergencyMonths === Infinity
-                        ? 'Not possible'
-                        : `${(emergencyMonths / 12).toFixed(1)} years`
-                    : fmt(income * 0.3)
-            "
-            :rule-title="
-              mode === 'safety'
-                ? 'Safety-net plan'
-                : mode === 'purchase'
-                  ? 'Within the 20% debt repayment threshold'
-                  : 'Under the 30% comfort rule'
-            "
-            :rule-copy="
-              mode === 'safety'
-                ? 'Your saving plan is building toward your emergency fund target.'
-                : mode === 'purchase'
-                  ? 'Your purchase debt repayments stay within 20% of take-home income.'
-                  : 'Your listed monthly costs leave room for the rest of your life.'
-            "
-            :warning-title="
-              mode === 'purchase'
-                ? 'Above the 20% debt repayment threshold'
-                : undefined
-            "
-            :warning="
-              mode === 'purchase' && debtRepaymentRatio > 0.2
-                ? `Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
-                : mode === 'move' && !isWithinComfortRule(ratio)
-                  ? `Minimum income for listed costs: ${fmt(listedMonthlyCosts / 0.3)} / month. Listed costs currently use ${Math.round(ratio * 100)}% of take-home income.`
+                    ? 'Interest cost'
+                    : mode === 'safety'
+                      ? 'Time to save'
+                      : 'Suggested housing max'
+              "
+              :secondary-value="
+                mode === 'purchase' && purchaseType === 'cash'
+                  ? cashAmountStillNeeded === 0
+                    ? 'Covered this month'
+                    : cashPurchaseMonths === Infinity
+                      ? 'Not possible'
+                      : `${cashPurchaseMonths} month${cashPurchaseMonths === 1 ? '' : 's'}`
+                  : mode === 'purchase'
+                    ? fmt(interestCost)
+                    : mode === 'safety'
+                      ? emergencyGap === 0
+                        ? 'Target reached'
+                        : emergencyMonths === Infinity
+                          ? 'Not possible'
+                          : `${(emergencyMonths / 12).toFixed(1)} years`
+                      : fmt(income * 0.3)
+              "
+              :rule-title="
+                mode === 'safety'
+                  ? 'Safety-net plan'
+                  : mode === 'purchase'
+                    ? 'Within the 20% debt repayment threshold'
+                    : 'Under the 30% comfort rule'
+              "
+              :rule-copy="
+                mode === 'safety'
+                  ? 'Your saving plan is building toward your emergency fund target.'
+                  : mode === 'purchase'
+                    ? 'Your purchase debt repayments stay within 20% of take-home income.'
+                    : 'Your listed monthly costs leave room for the rest of your life.'
+              "
+              :warning-title="
+                mode === 'purchase'
+                  ? 'Above the 20% debt repayment threshold'
                   : undefined
-            "
-            @save="savePlan"
-          /></div></template
-      ><ResultsPage
-        v-else
-        :results="calculatedResults"
-        @back="view = 'calculators'"
-      />
+              "
+              :warning="
+                mode === 'purchase' && debtRepaymentRatio > 0.2
+                  ? `Debt repayments use ${Math.round(debtRepaymentRatio * 100)}% of take-home income.`
+                  : mode === 'move' && !isWithinComfortRule(ratio)
+                    ? `Minimum income for listed costs: ${fmt(listedMonthlyCosts / 0.3)} / month. Listed costs currently use ${Math.round(ratio * 100)}% of take-home income.`
+                    : undefined
+              "
+              @save="savePlan"
+            /></div></template
+        ><ResultsPage
+          v-else
+          :results="calculatedResults"
+          @back="view = 'calculators'"
+        />
+      </div>
       <footer>
         <span class="privacy-note"
           ><ShieldCheck :size="14" /> Privacy: your figures are stored only in
