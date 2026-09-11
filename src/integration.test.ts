@@ -1,6 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App.vue";
+import PreferencesModal from "./components/PreferencesModal.vue";
 import ResultsPage from "./components/results/ResultsPage.vue";
 
 const resultProps = {
@@ -42,6 +43,32 @@ describe("Results page integration", () => {
   });
 });
 
+describe("dialog accessibility", () => {
+  it("focuses an initially open dialog", async () => {
+    const wrapper = mount(PreferencesModal, {
+      attachTo: document.body,
+      props: {
+        open: true,
+        income: 0,
+        rent: 0,
+        utilities: 0,
+        transport: 0,
+        food: 0,
+        debtPayments: 0,
+        monthlySaving: 0,
+        monthlyCommitments: 0,
+        saved: 0,
+      },
+    });
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.get('[aria-label="Close preferences"]').element,
+    );
+    wrapper.unmount();
+  });
+});
+
 describe("localStorage integration", () => {
   beforeEach(() => localStorage.clear());
   it("restores persisted income and preferences on mount", async () => {
@@ -61,6 +88,18 @@ describe("localStorage integration", () => {
     expect(
       (wrapper.find("#monthly-income").element as HTMLInputElement).value,
     ).toBe("5100");
+    wrapper.unmount();
+  });
+  it("bounds a persisted loan term to the available selector range", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ term: 1_000_000_000 }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+    expect(
+      (wrapper.find("#purchase-term").element as HTMLSelectElement).value,
+    ).toBe("600");
     wrapper.unmount();
   });
   it("exposes calculator tabs and restores focus after closing preferences", async () => {

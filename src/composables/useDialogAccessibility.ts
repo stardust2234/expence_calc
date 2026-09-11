@@ -56,7 +56,7 @@ export function useDialogAccessibility(
       previouslyFocused.focus();
       previouslyFocused = null;
     }
-  });
+  }, { immediate: true });
   onMounted(() => document.addEventListener("keydown", handleKeydown));
   onBeforeUnmount(() => {
     document.removeEventListener("keydown", handleKeydown);

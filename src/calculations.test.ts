@@ -101,6 +101,7 @@ describe("financial calculations", () => {
   it("preserves aggregate costs above the per-input limit", () => {
     expect(calculateHousingRatio(6_000_000_000, 1_000_000_000)).toBe(6);
     expect(calculateEmergencyTarget(6_000_000_000)).toBe(36_000_000_000);
+    expect(calculateEmergencyMonths(36_000_000_000, 0, 1_000_000_000)).toBe(36);
   });
   it("evaluates reusable budget guidelines", () => {
     expect(calculateBudgetRatio(300, 1000)).toBe(0.3);

@@ -70,7 +70,8 @@ export const calculateEmergencyMonths = (
   saved: number,
   monthlySaving: number,
 ): number => {
-  const gap = Math.max(0, sanitizeNumber(target) - sanitizeNumber(saved));
+  const safeTarget = Number.isFinite(target) ? Math.max(0, target) : 0;
+  const gap = Math.max(0, safeTarget - sanitizeNumber(saved));
   const pace = sanitizeNumber(monthlySaving);
   return gap === 0 ? 0 : pace > 0 ? Math.ceil(gap / pace) : Infinity;
 };
