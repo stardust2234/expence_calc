@@ -45,6 +45,15 @@ describe("financial calculations", () => {
   it("sanitizes negative and empty values", () => {
     expect(sanitizeNumber(-10)).toBe(0);
     expect(sanitizeNumber("")).toBe(0);
+    expect(sanitizeNumber(Number.NaN)).toBe(0);
+    expect(sanitizeNumber(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(sanitizeNumber(2_000_000_000)).toBe(1_000_000_000);
+  });
+  it("keeps loan calculations finite for extreme inputs", () => {
+    expect(calculateMonthlyPayment(1e12, 0, 1e12, 1e12)).toBe(83_333_333);
+    expect(Number.isFinite(calculateInterestCost(1e12, 0, 1e12, 1e12))).toBe(
+      true,
+    );
   });
   it("treats zero income as unaffordable", () =>
     expect(calculateHousingRatio(500, 0)).toBe(1));

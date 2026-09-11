@@ -1,16 +1,6 @@
 <script setup lang="ts">
-defineProps<{
-  open: boolean;
-  income: number;
-  rent: number;
-  utilities: number;
-  transport: number;
-  food: number;
-  debtPayments: number;
-  monthlySaving: number;
-  monthlyCommitments: number;
-  saved: number;
-}>();
+import { ref, toRef } from "vue";
+import { useDialogAccessibility } from "../composables/useDialogAccessibility";
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "save"): void;
@@ -28,17 +18,33 @@ const emit = defineEmits<{
     value: number,
   ): void;
 }>();
+const props = defineProps<{
+  open: boolean;
+  income: number;
+  rent: number;
+  utilities: number;
+  transport: number;
+  food: number;
+  debtPayments: number;
+  monthlySaving: number;
+  monthlyCommitments: number;
+  saved: number;
+}>();
+const dialog = ref<HTMLElement | null>(null);
+useDialogAccessibility(toRef(props, "open"), dialog, () => emit("close"));
 </script>
 <template>
   <div v-if="open" class="preferences-overlay" @click.self="emit('close')">
     <section
       class="preferences-panel"
+      ref="dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="preferences-title"
     >
       <button
         class="close-preferences"
+        type="button"
         @click="emit('close')"
         aria-label="Close preferences"
       >
@@ -55,6 +61,7 @@ const emit = defineEmits<{
           :value="income"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:income',
@@ -68,6 +75,7 @@ const emit = defineEmits<{
           :value="rent"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:rent',
@@ -81,6 +89,7 @@ const emit = defineEmits<{
           :value="utilities"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:utilities',
@@ -94,6 +103,7 @@ const emit = defineEmits<{
           :value="debtPayments"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:debtPayments',
@@ -107,6 +117,7 @@ const emit = defineEmits<{
           :value="transport"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:transport',
@@ -120,6 +131,7 @@ const emit = defineEmits<{
           :value="food"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:food',
@@ -133,6 +145,7 @@ const emit = defineEmits<{
           :value="monthlySaving"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:monthlySaving',
@@ -146,6 +159,7 @@ const emit = defineEmits<{
           :value="monthlyCommitments"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:monthlyCommitments',
@@ -159,6 +173,7 @@ const emit = defineEmits<{
           :value="saved"
           type="number"
           min="0"
+          max="1000000000"
           @input="
             emit(
               'update:saved',

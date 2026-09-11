@@ -248,6 +248,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                 v-model.number="income"
                 type="number"
                 min="0"
+                max="1000000000"
               /><span>£</span></label
             ><PurchaseCalculator
               v-if="mode === 'purchase'"

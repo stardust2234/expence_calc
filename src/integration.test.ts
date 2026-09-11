@@ -63,6 +63,33 @@ describe("localStorage integration", () => {
     ).toBe("5100");
     wrapper.unmount();
   });
+  it("exposes calculator tabs and restores focus after closing preferences", async () => {
+    const wrapper = mount(App, { attachTo: document.body });
+    const tabs = wrapper.get('[role="tablist"]');
+    expect(tabs.findAll('[role="tab"]')).toHaveLength(4);
+    expect(tabs.find('[aria-selected="true"]').text()).toContain(
+      "Big purchase",
+    );
+
+    const menuButton = wrapper.get(".menu-button");
+    (menuButton.element as HTMLElement).focus();
+    await menuButton.trigger("click");
+    await wrapper
+      .findAll(".menu-panel button")
+      .find((button) => button.text() === "Preferences")!
+      .trigger("click");
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(
+      wrapper.get('[aria-label="Close preferences"]').element,
+    );
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+    expect(document.activeElement).toBe(menuButton.element);
+    wrapper.unmount();
+  });
   it("persists a changed income value", async () => {
     const wrapper = mount(App);
     await wrapper.find("#monthly-income").setValue("5000");
@@ -369,7 +396,9 @@ describe("localStorage integration", () => {
       .find((button) => button.text() === "Pay cash")!
       .trigger("click");
     expect(wrapper.find(".copy").text()).toContain("approximately 9 months");
-    expect(wrapper.find(".copy").text()).not.toContain("approximately 5 months");
+    expect(wrapper.find(".copy").text()).not.toContain(
+      "approximately 5 months",
+    );
     wrapper.unmount();
   });
 
