@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
 import {
   AppHeader,
   CalculatorTabs,
@@ -17,7 +17,7 @@ import {
 } from "./composables/useFinancialState";
 import { useCalculations } from "./composables/useCalculations";
 import { usePersistence } from "./composables/usePersistence";
-import { sanitizeNumber } from "./calculations";
+import { sanitizeNumber, sanitizeTermMonths } from "./calculations";
 const {
   mode,
   view,
@@ -136,6 +136,12 @@ const showNotice = (message: string) => {
     notice.value = message;
     setTimeout(() => (notice.value = ""), 4000);
   },
+  setNumeric = (target: Ref<number>, value: number) => {
+    target.value = sanitizeNumber(value);
+  },
+  setTerm = (value: number) => {
+    term.value = sanitizeTermMonths(value);
+  },
   persistence = usePersistence(
     storageKey,
     persistedValues,
@@ -231,7 +237,9 @@ const selectCalculator = (next: CalculatorMode | "results") => {
         @update:food="food = sanitizeNumber($event)"
         @update:debt-payments="debtPayments = sanitizeNumber($event)"
         @update:monthly-saving="monthlySaving = sanitizeNumber($event)"
-        @update:monthly-commitments="monthlyCommitments = sanitizeNumber($event)"
+        @update:monthly-commitments="
+          monthlyCommitments = sanitizeNumber($event)
+        "
         @update:saved="saved = sanitizeNumber($event)"
       />
       <div v-if="notice" class="notice" role="status">{{ notice }} ×</div>
@@ -245,30 +253,46 @@ const selectCalculator = (next: CalculatorMode | "results") => {
             <label for="monthly-income"
               >Monthly take-home income<input
                 id="monthly-income"
-                v-model.number="income"
+                :value="income"
                 type="number"
                 min="0"
                 max="1000000000"
+                @input="
+                  setNumeric(
+                    income,
+                    Number(($event.target as HTMLInputElement).value),
+                  )
+                "
               /><span>£</span></label
             ><PurchaseCalculator
               v-if="mode === 'purchase'"
               v-model:purchase-type="purchaseType"
-              v-model:price="price"
-              v-model:deposit="deposit"
-              v-model:term="term"
-              v-model:rate="rate"
+              :price="price"
+              :deposit="deposit"
+              :term="term"
+              :rate="rate"
+              @update:price="setNumeric(price, $event)"
+              @update:deposit="setNumeric(deposit, $event)"
+              @update:term="setTerm($event)"
+              @update:rate="setNumeric(rate, $event)"
               :cash-available="cashAvailable"
             /><MoveCalculator
               v-else-if="mode === 'move'"
-              v-model:rent="rent"
-              v-model:moving="moving"
-              v-model:furnishings="furnishings"
-              v-model:utilities="utilities"
+              :rent="rent"
+              :moving="moving"
+              :furnishings="furnishings"
+              :utilities="utilities"
+              @update:rent="setNumeric(rent, $event)"
+              @update:moving="setNumeric(moving, $event)"
+              @update:furnishings="setNumeric(furnishings, $event)"
+              @update:utilities="setNumeric(utilities, $event)"
             /><SafetyCalculator
               v-else
-              v-model:essentials="essentials"
-              v-model:saved="saved"
-              v-model:monthly-saving="monthlySaving"
+              :essentials="essentials"
+              :saved="saved"
+              :monthly-saving="monthlySaving"
+              @update:saved="setNumeric(saved, $event)"
+              @update:monthly-saving="setNumeric(monthlySaving, $event)"
               :available-monthly="Math.max(0, disposableMargin)"
               :income="income"
             /><button v-if="mode !== 'safety'" class="add" @click="addCost">
@@ -279,10 +303,15 @@ const selectCalculator = (next: CalculatorMode | "results") => {
                 v-model="cost.name"
                 :aria-label="`${cost.name} name`"
               /><input
-                v-model.number="cost.amount"
+                :value="cost.amount"
                 type="number"
                 min="0"
                 aria-label="Monthly cost amount"
+                @input="
+                  cost.amount = sanitizeNumber(
+                    Number(($event.target as HTMLInputElement).value),
+                  )
+                "
               /><button
                 class="remove-cost"
                 type="button"

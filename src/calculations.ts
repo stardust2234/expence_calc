@@ -6,7 +6,7 @@ export const sanitizeNumber = (value: number | string): number => {
     ? Math.min(MAX_FINANCIAL_VALUE, Math.max(0, parsed))
     : 0;
 };
-const sanitizeTermMonths = (termMonths: number): number =>
+export const sanitizeTermMonths = (termMonths: number): number =>
   Math.min(600, Math.max(1, sanitizeNumber(termMonths)));
 const calculateUnroundedMonthlyPayment = (
   price: number,
@@ -45,8 +45,8 @@ export const calculateInterestCost = (
   Math.max(
     0,
     Math.round(
-        calculateUnroundedMonthlyPayment(price, deposit, termMonths, annualRate) *
-          sanitizeTermMonths(termMonths) -
+      calculateUnroundedMonthlyPayment(price, deposit, termMonths, annualRate) *
+        sanitizeTermMonths(termMonths) -
         Math.max(0, sanitizeNumber(price) - sanitizeNumber(deposit)),
     ),
   );

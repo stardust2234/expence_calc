@@ -64,7 +64,7 @@ const selectRelativeTab = (current: (typeof tabs)[number], offset: number) => {
       @keydown.home.prevent="
         selectRelativeTab('safety', -tabs.indexOf('safety'))
       "
-      @keydown.end.prevent="selectRelativeTab('safety', tabs.length - 3)"
+      @keydown.end.prevent="selectRelativeTab('safety', tabs.length - 1)"
       @click="emit('update:modelValue', 'safety')"
     >
       <ShieldCheck :size="16" /> Safety net</button

@@ -12,6 +12,7 @@ import {
   getEssentialCostPosition,
   isWithinComfortRule,
   sanitizeNumber,
+  sanitizeTermMonths,
 } from "../calculations";
 import type { FinancialResults } from "../types/financial";
 
@@ -251,7 +252,7 @@ export function useCalculations(state: {
     purchaseDetails:
       state.purchaseType.value === "cash"
         ? "Paid in cash"
-        : `${formatCurrency(Math.max(0, sanitizeNumber(state.price.value) - sanitizeNumber(state.deposit.value)))} borrowed · ${formatCurrency(interestCost.value)} interest · ${Math.max(1, sanitizeNumber(state.term.value)) / 12} years at ${sanitizeNumber(state.rate.value)}%`,
+        : `${formatCurrency(Math.max(0, sanitizeNumber(state.price.value) - sanitizeNumber(state.deposit.value)))} borrowed · ${formatCurrency(interestCost.value)} interest · ${sanitizeTermMonths(state.term.value) / 12} years at ${sanitizeNumber(state.rate.value)}%`,
     emergencySummary: formatCurrency(emergencyTarget.value),
     safetyTimeToGoal:
       emergencyGap.value === 0
