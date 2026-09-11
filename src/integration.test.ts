@@ -90,6 +90,22 @@ describe("localStorage integration", () => {
     ).toBe("5100");
     wrapper.unmount();
   });
+  it("recomputes essentials instead of restoring a persisted aggregate", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({ essentials: 2_000_000_000 }),
+    );
+    const wrapper = mount(App);
+    await wrapper
+      .findAll(".tabs button")
+      .find((button) => button.text().includes("Safety net"))!
+      .trigger("click");
+
+    expect(
+      (wrapper.find("#essential-spend").element as HTMLInputElement).value,
+    ).toBe("1700.00");
+    wrapper.unmount();
+  });
   it("bounds a persisted loan term to the available selector range", async () => {
     localStorage.setItem(
       "worthwhile-calculator-state",

@@ -132,7 +132,6 @@ const storageKey = "worthwhile-calculator-state",
     debtPayments,
     saved,
     monthlySaving,
-    essentials,
     moving,
     furnishings,
   };
