@@ -17,7 +17,11 @@ import {
 } from "./composables/useFinancialState";
 import { useCalculations } from "./composables/useCalculations";
 import { usePersistence } from "./composables/usePersistence";
-import { sanitizeNumber, sanitizeTermMonths } from "./calculations";
+import {
+  sanitizeNumber,
+  sanitizeRate,
+  sanitizeTermMonths,
+} from "./calculations";
 const {
   mode,
   view,
@@ -274,7 +278,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
               @update:price="setNumeric(price, $event)"
               @update:deposit="setNumeric(deposit, $event)"
               @update:term="setTerm($event)"
-              @update:rate="setNumeric(rate, $event)"
+              @update:rate="rate = sanitizeRate($event)"
               :cash-available="cashAvailable"
             /><MoveCalculator
               v-else-if="mode === 'move'"

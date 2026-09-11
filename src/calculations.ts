@@ -6,6 +6,10 @@ export const sanitizeNumber = (value: number | string): number => {
     ? Math.min(MAX_FINANCIAL_VALUE, Math.max(0, parsed))
     : 0;
 };
+export const sanitizeRate = (value: number | string): number =>
+  Math.min(100, sanitizeNumber(value));
+const sanitizeAggregate = (value: number): number =>
+  Number.isFinite(value) ? Math.max(0, value) : 0;
 export const sanitizeTermMonths = (termMonths: number): number =>
   Math.min(600, Math.max(1, sanitizeNumber(termMonths)));
 const calculateUnroundedMonthlyPayment = (
@@ -19,7 +23,7 @@ const calculateUnroundedMonthlyPayment = (
     sanitizeNumber(price) - sanitizeNumber(deposit),
   );
   const months = sanitizeTermMonths(termMonths);
-  const monthlyRate = Math.min(100, sanitizeNumber(annualRate)) / 1200;
+  const monthlyRate = sanitizeRate(annualRate) / 1200;
   if (monthlyRate === 0) return principal / months;
   return (
     (principal * monthlyRate * (1 + monthlyRate) ** months) /
@@ -60,7 +64,7 @@ export const calculateMoveInTotal = (
   sanitizeNumber(rent) + sanitizeNumber(moving) + sanitizeNumber(furnishings);
 export const calculateEmergencyTarget = (
   essentialMonthlySpend: number,
-): number => sanitizeNumber(essentialMonthlySpend) * 6;
+): number => sanitizeAggregate(essentialMonthlySpend) * 6;
 export const calculateEmergencyMonths = (
   target: number,
   saved: number,
@@ -84,7 +88,7 @@ export const calculateHousingRatio = (
   income: number,
 ): number =>
   sanitizeNumber(income) > 0
-    ? sanitizeNumber(monthlyCosts) / sanitizeNumber(income)
+    ? sanitizeAggregate(monthlyCosts) / sanitizeNumber(income)
     : 1;
 export const isWithinComfortRule = (ratio: number): boolean => ratio <= 0.3;
 

@@ -1,5 +1,5 @@
 import { onMounted, ref, watch, type Ref } from "vue";
-import { sanitizeNumber } from "../calculations";
+import { sanitizeNumber, sanitizeRate } from "../calculations";
 
 type PersistedValues = Record<string, Ref<unknown>>;
 type ExtraCost = { id: number; name: string; amount: number };
@@ -54,7 +54,9 @@ export function usePersistence(
           const target = values[key];
           target.value =
             typeof target.value === "number"
-              ? sanitizeNumber(value as number)
+              ? key === "rate"
+                ? sanitizeRate(value as number)
+                : sanitizeNumber(value as number)
               : value;
         }
       });

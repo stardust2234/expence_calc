@@ -10,6 +10,7 @@ import {
   calculateSuggestedSaving,
   isWithinComfortRule,
   sanitizeNumber,
+  sanitizeRate,
   calculateBudgetRatio,
   evaluateGuideline,
   getEssentialCostPosition,
@@ -48,6 +49,12 @@ describe("financial calculations", () => {
     expect(sanitizeNumber(Number.NaN)).toBe(0);
     expect(sanitizeNumber(Number.POSITIVE_INFINITY)).toBe(0);
     expect(sanitizeNumber(2_000_000_000)).toBe(1_000_000_000);
+  });
+  it("bounds rates consistently with loan calculations", () => {
+    expect(sanitizeRate(200)).toBe(100);
+    expect(calculateMonthlyPayment(12000, 0, 12, sanitizeRate(200))).toBe(
+      calculateMonthlyPayment(12000, 0, 12, 100),
+    );
   });
   it("keeps loan calculations finite for extreme inputs", () => {
     expect(calculateMonthlyPayment(1e12, 0, 1e12, 1e12)).toBe(83_333_333);
@@ -90,6 +97,10 @@ describe("financial calculations", () => {
   it("handles a zero-income affordability ratio safely", () => {
     expect(calculateHousingRatio(0, 0)).toBe(1);
     expect(isWithinComfortRule(calculateHousingRatio(500, 0))).toBe(false);
+  });
+  it("preserves aggregate costs above the per-input limit", () => {
+    expect(calculateHousingRatio(6_000_000_000, 1_000_000_000)).toBe(6);
+    expect(calculateEmergencyTarget(6_000_000_000)).toBe(36_000_000_000);
   });
   it("evaluates reusable budget guidelines", () => {
     expect(calculateBudgetRatio(300, 1000)).toBe(0.3);
