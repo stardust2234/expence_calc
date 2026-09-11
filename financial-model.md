@@ -13,7 +13,7 @@ appropriate for every person or jurisdiction.
 - Empty, invalid, `NaN`, and infinite numeric values are treated as zero.
 - Monetary values are capped at `£1,000,000,000` to prevent invalid or unsafe
   calculations from extreme input or tampered saved data.
-- Loan terms are constrained to 1 to 600 months for calculation purposes.
+- Loan terms are constrained to 1 to 60 months for calculation purposes.
 - Interest rates are constrained to 0% to 100% for calculation purposes.
 - Browser `localStorage` is convenience storage on the current device, not a
   source of verified financial data.

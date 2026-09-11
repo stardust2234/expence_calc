@@ -49,11 +49,14 @@ export function usePersistence(
   };
   onMounted(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
       if (!stored) return;
       Object.entries(stored).forEach(([key, value]) => {
         if (key === "extraCosts" && Array.isArray(value)) {
-          extraCosts.value = value as ExtraCost[];
+          extraCosts.value = (value as ExtraCost[]).map((cost) => ({
+            ...cost,
+            amount: sanitizeNumber(cost.amount),
+          }));
         } else if (key in values) {
           const target = values[key];
           target.value =
