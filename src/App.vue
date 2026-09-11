@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
+import {
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  type Ref,
+} from "vue";
 import {
   AppHeader,
   CalculatorTabs,
@@ -139,6 +146,11 @@ const showNotice = (message: string) => {
     notice.value = message;
     setTimeout(() => (notice.value = ""), 4000);
   },
+  menuButton = ref<HTMLElement | null>(null),
+  closePreferences = () => {
+    preferencesOpen.value = false;
+    void nextTick(() => menuButton.value?.focus());
+  },
   numericSetter = (target: Ref<number>) => (value: number) => {
     target.value = sanitizeNumber(value);
   },
@@ -190,6 +202,7 @@ const selectCalculator = (next: CalculatorMode | "results") => {
         <AppHeader />
         <button
           class="menu-button"
+          ref="menuButton"
           type="button"
           aria-label="Open menu"
           :aria-expanded="menuOpen"
@@ -237,9 +250,9 @@ const selectCalculator = (next: CalculatorMode | "results") => {
         :monthly-saving="monthlySaving"
         :monthly-commitments="monthlyCommitments"
         :saved="saved"
-        @close="preferencesOpen = false"
+        @close="closePreferences"
         @save="
-          preferencesOpen = false;
+          closePreferences();
           showNotice('Preferences saved on this device.');
         "
         @update:income="income = sanitizeNumber($event)"

@@ -11,6 +11,7 @@ import {
   isWithinComfortRule,
   sanitizeNumber,
   sanitizeRate,
+  sanitizeAggregate,
   calculateBudgetRatio,
   evaluateGuideline,
   getEssentialCostPosition,
