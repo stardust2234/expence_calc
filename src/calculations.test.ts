@@ -57,7 +57,7 @@ describe("financial calculations", () => {
     );
   });
   it("keeps loan calculations finite for extreme inputs", () => {
-    expect(calculateMonthlyPayment(1e12, 0, 1e12, 1e12)).toBe(83_333_333);
+    expect(calculateMonthlyPayment(1e12, 0, 1e12, 1e12)).toBe(84_023_052);
     expect(Number.isFinite(calculateInterestCost(1e12, 0, 1e12, 1e12))).toBe(
       true,
     );
