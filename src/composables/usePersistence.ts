@@ -53,10 +53,20 @@ export function usePersistence(
       if (!stored) return;
       Object.entries(stored).forEach(([key, value]) => {
         if (key === "extraCosts" && Array.isArray(value)) {
-          extraCosts.value = (value as ExtraCost[]).map((cost) => ({
-            ...cost,
-            amount: sanitizeNumber(cost.amount),
-          }));
+          extraCosts.value = (value as unknown[])
+            .filter(
+              (cost): cost is ExtraCost =>
+                typeof cost === "object" &&
+                cost !== null &&
+                !Array.isArray(cost) &&
+                typeof (cost as ExtraCost).id === "number" &&
+                typeof (cost as ExtraCost).name === "string" &&
+                typeof (cost as ExtraCost).amount === "number",
+            )
+            .map((cost) => ({
+              ...cost,
+              amount: sanitizeNumber(cost.amount),
+            }));
         } else if (key in values) {
           const target = values[key];
           target.value =

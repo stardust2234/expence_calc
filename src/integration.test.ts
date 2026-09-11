@@ -226,6 +226,24 @@ describe("localStorage integration", () => {
     expect(wrapper.find('input[aria-label*="<img"]').exists()).toBe(true);
     wrapper.unmount();
   });
+  it("ignores malformed persisted extra costs while restoring valid fields", async () => {
+    localStorage.setItem(
+      "worthwhile-calculator-state",
+      JSON.stringify({
+        income: 5100,
+        extraCosts: [null, { id: 2, name: "Childcare", amount: 250 }],
+      }),
+    );
+    const wrapper = mount(App);
+    await wrapper.vm.$nextTick();
+
+    expect(
+      (wrapper.find("#monthly-income").element as HTMLInputElement).value,
+    ).toBe("5100");
+    expect(wrapper.findAll(".extra-cost")).toHaveLength(1);
+    expect(wrapper.text()).toContain("Childcare");
+    wrapper.unmount();
+  });
   it("sanitizes negative and empty persisted numeric values", async () => {
     localStorage.setItem(
       "worthwhile-calculator-state",
